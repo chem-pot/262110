@@ -1,0 +1,3707 @@
+
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+							<style>
+								body {
+									background-color: white; /* Ensure the iframe has a white background */
+								}
+
+								
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Malgun Gothic',sans-serif;
+  background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);
+  min-height:100vh; color:white; overflow-x:hidden;
+}
+h1 {
+  text-align:center; padding:12px; font-size:1.3rem;
+  color:#e0e0ff; text-shadow:0 0 10px #7090ff; letter-spacing:2px;
+}
+#top-bar {
+  position:fixed; top:10px; right:20px;
+  display:flex; gap:10px; z-index:1000;
+}
+#reset-btn {
+  padding:8px 14px;
+  background:linear-gradient(135deg,#ff4757,#c0392b);
+  border:none; border-radius:10px; color:white;
+  font-size:0.85rem; cursor:pointer; font-weight:bold;
+  box-shadow:0 4px 15px rgba(255,71,87,0.5); transition:all 0.2s;
+}
+#reset-btn:hover { transform:scale(1.05); }
+#trash {
+  width:50px; height:50px;
+  background:linear-gradient(135deg,#636e72,#2d3436);
+  border-radius:12px; display:flex; align-items:center;
+  justify-content:center; font-size:1.6rem;
+  box-shadow:0 4px 15px rgba(0,0,0,0.4);
+  transition:all 0.3s; border:2px solid #636e72;
+  position:relative; z-index:1001;
+}
+#trash.drag-over {
+  background:linear-gradient(135deg,#e17055,#d63031);
+  border-color:#ff7675; transform:scale(1.2);
+  box-shadow:0 0 20px rgba(255,71,87,0.8);
+}
+
+/* ===== 주기율표 ===== */
+#pt-section { padding:6px 8px; text-align:center; }
+#pt-section>h2 { font-size:0.85rem; color:#a8b2ff; margin-bottom:5px; }
+#pt-wrapper {
+  display:inline-block;
+  background:rgba(255,255,255,0.05);
+  border-radius:12px; border:1px solid rgba(255,255,255,0.1); padding:6px;
+}
+#pt-container {
+  display:grid;
+  grid-template-columns: 30px repeat(18,38px);
+  grid-template-rows: 20px repeat(7,46px);
+  gap:2px;
+}
+.period-label,.group-label {
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.55rem; color:#6c7ae0; font-weight:bold; opacity:0.85;
+}
+.element {
+  width:38px; height:46px; border-radius:6px;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  cursor:grab; user-select:none;
+  transition:transform 0.15s,box-shadow 0.15s;
+  border:1px solid rgba(255,255,255,0.15); position:relative;
+}
+.element:hover { transform:scale(1.18); z-index:10; box-shadow:0 5px 20px rgba(255,255,255,0.35); }
+.element .sym { font-size:0.9rem; font-weight:bold; line-height:1.1; }
+.element .st  { font-size:0.37rem; opacity:0.85; margin-top:1px; text-align:center; }
+.element .num { font-size:0.37rem; opacity:0.7; position:absolute; top:2px; left:3px; }
+.nonmetal   { background:linear-gradient(135deg,#00b894,#00cec9); color:#fff; }
+.noble      { background:linear-gradient(135deg,#6c5ce7,#a29bfe); color:#fff; }
+.alkali     { background:linear-gradient(135deg,#e17055,#d63031); color:#fff; }
+.alkaline   { background:linear-gradient(135deg,#fdcb6e,#e67e22); color:#333; }
+.transition { background:linear-gradient(135deg,#74b9ff,#0984e3); color:#fff; }
+.metalloid  { background:linear-gradient(135deg,#55efc4,#00b894); color:#333; }
+.metal      { background:linear-gradient(135deg,#b2bec3,#636e72); color:#fff; }
+.halogen    { background:linear-gradient(135deg,#fd79a8,#e84393); color:#fff; }
+.hydrogen   { background:linear-gradient(135deg,#dfe6e9,#b2bec3); color:#333; }
+.empty-cell { background:transparent!important; border:none!important; pointer-events:none!important; }
+
+/* 범례 */
+#legend { display:flex; flex-wrap:wrap; justify-content:center; gap:5px; padding:3px 20px 6px; }
+.legend-item { display:flex; align-items:center; gap:3px; font-size:0.58rem; color:#b2bec3; }
+.legend-dot  { width:9px; height:9px; border-radius:3px; }
+
+/* ===== 작업대 ===== */
+#wb-section { padding:4px 15px 10px; text-align:center; }
+#wb-section>h2 { font-size:0.85rem; color:#a8b2ff; margin-bottom:5px; }
+#workbench {
+  position:relative; width:100%; max-width:960px; height:190px;
+  margin:0 auto;
+  background:rgba(255,255,255,0.06);
+  border:2px dashed rgba(130,170,255,0.5);
+  border-radius:15px; overflow:visible;
+}
+#workbench.drag-over-bench { border-color:#74b9ff; background:rgba(116,185,255,0.08); }
+#bench-msg {
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  color:rgba(255,255,255,0.25); font-size:0.78rem;
+  pointer-events:none; text-align:center; line-height:1.8;
+}
+#react-btn {
+  margin-top:8px; padding:9px 28px;
+  background:linear-gradient(135deg,#00b894,#00cec9);
+  border:none; border-radius:12px; color:white;
+  font-size:0.9rem; font-weight:bold; cursor:pointer;
+  box-shadow:0 4px 20px rgba(0,184,148,0.5);
+  transition:all 0.2s; letter-spacing:1px;
+}
+#react-btn:hover { transform:scale(1.05); }
+#react-btn:disabled { background:linear-gradient(135deg,#636e72,#2d3436); cursor:not-allowed; transform:none; }
+
+/* 힌트 */
+#hint-panel {
+  max-width:960px; margin:4px auto 6px;
+  background:rgba(108,92,231,0.15);
+  border-radius:8px; padding:6px 12px;
+  border-left:3px solid #6c5ce7;
+  font-size:0.7rem; color:#dfe6e9; line-height:1.8;
+}
+#hint-panel b { color:#a29bfe; }
+
+/* ===== 결과 영역 ===== */
+#result-area {
+  max-width:960px; margin:6px auto 15px;
+  display:none; gap:10px;
+  grid-template-columns:1fr 1fr;
+}
+#result-panel {
+  background:rgba(255,255,255,0.07); border-radius:12px;
+  padding:12px 15px; border-left:4px solid #00b894;
+  animation:slideIn 0.4s ease;
+}
+#result-panel h3 { font-size:0.88rem; color:#55efc4; margin-bottom:5px; }
+#result-panel p  { font-size:0.8rem; color:#dfe6e9; line-height:1.7; white-space:pre-line; }
+#bond-badge {
+  display:inline-block; margin-top:7px;
+  padding:4px 12px; border-radius:20px;
+  font-size:0.72rem; font-weight:bold;
+}
+.badge-covalent { background:linear-gradient(135deg,#00b894,#00cec9); color:#fff; }
+.badge-ionic    { background:linear-gradient(135deg,#fdcb6e,#e67e22); color:#333; }
+.badge-metallic { background:linear-gradient(135deg,#74b9ff,#0984e3); color:#fff; }
+.badge-none     { background:linear-gradient(135deg,#636e72,#2d3436); color:#fff; }
+
+/* ===== 구조 패널 ===== */
+#structure-panel {
+  background:rgba(10,10,30,0.85); border-radius:12px;
+  padding:10px 12px; border:2px solid #6c5ce7;
+  animation:slideIn 0.4s ease;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:flex-start;
+  min-height:180px;
+}
+#structure-panel h3 { font-size:0.88rem; color:#a29bfe; margin-bottom:6px; }
+#structure-canvas {
+  border-radius:8px;
+  background:#0a0a1e;
+  border:1px solid rgba(108,92,231,0.4);
+  display:block;
+}
+
+@keyframes slideIn {
+  from{opacity:0;transform:translateY(-8px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+/* 플로팅 */
+.floating-element {
+  position:fixed; width:44px; height:52px;
+  border-radius:8px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  user-select:none; z-index:9999; pointer-events:none;
+  box-shadow:0 8px 25px rgba(0,0,0,0.6);
+  border:2px solid rgba(255,255,255,0.5);
+}
+.floating-element .sym { font-size:1rem; font-weight:bold; }
+.floating-element .st  { font-size:0.37rem; }
+
+/* 작업대 원소 카드 */
+.bench-element {
+  position:absolute; width:46px; height:54px;
+  border-radius:8px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  cursor:grab; user-select:none;
+  border:2px solid rgba(255,255,255,0.3);
+  box-shadow:0 4px 12px rgba(0,0,0,0.4); z-index:5;
+  animation:popIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+@keyframes popIn {
+  from{transform:scale(0) rotate(-15deg);opacity:0;}
+  to{transform:scale(1) rotate(0);opacity:1;}
+}
+.bench-element .sym { font-size:0.95rem; font-weight:bold; }
+.bench-element .st  { font-size:0.37rem; }
+
+/* 생성물 카드 */
+.product-card {
+  position:absolute; min-width:68px; padding:6px 10px;
+  border-radius:10px;
+  background:linear-gradient(135deg,#2d3436,#1e272e);
+  border:2px solid #00b894; cursor:grab; user-select:none;
+  text-align:center; box-shadow:0 5px 20px rgba(0,184,148,0.5); z-index:10;
+  animation:productAppear 0.6s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+@keyframes productAppear {
+  0%{transform:scale(0) rotate(-20deg);opacity:0;}
+  60%{transform:scale(1.2) rotate(5deg);}
+  100%{transform:scale(1) rotate(0);opacity:1;}
+}
+.product-card .p-formula { font-size:0.95rem; font-weight:bold; color:#55efc4; }
+.product-card .p-name    { font-size:0.58rem; color:#b2bec3; margin-top:2px; }
+
+/* 애니메이션 */
+.converge-el {
+  position:fixed; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:bold; pointer-events:none; z-index:8500;
+  box-shadow:0 4px 20px rgba(255,255,255,0.4);
+  border:2px solid rgba(255,255,255,0.5);
+}
+.explosion-ring {
+  position:absolute; border-radius:50%; border:4px solid;
+  pointer-events:none; transform:translate(-50%,-50%);
+}
+.flash-overlay { position:fixed; inset:0; pointer-events:none; z-index:8200; opacity:0; }
+@keyframes shake {
+  0%,100%{transform:translate(0,0);}
+  10%{transform:translate(-4px,-2px);}
+  30%{transform:translate(4px,2px);}
+  50%{transform:translate(-3px,3px);}
+  70%{transform:translate(3px,-2px);}
+  90%{transform:translate(-2px,2px);}
+}
+
+
+							</style>
+                        </head>
+                        <body>
+                            <!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>화학 결합 시뮬레이션</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Malgun Gothic',sans-serif;
+  background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);
+  min-height:100vh; color:white; overflow-x:hidden;
+}
+h1 {
+  text-align:center; padding:12px; font-size:1.3rem;
+  color:#e0e0ff; text-shadow:0 0 10px #7090ff; letter-spacing:2px;
+}
+#top-bar {
+  position:fixed; top:10px; right:20px;
+  display:flex; gap:10px; z-index:1000;
+}
+#reset-btn {
+  padding:8px 14px;
+  background:linear-gradient(135deg,#ff4757,#c0392b);
+  border:none; border-radius:10px; color:white;
+  font-size:0.85rem; cursor:pointer; font-weight:bold;
+  box-shadow:0 4px 15px rgba(255,71,87,0.5); transition:all 0.2s;
+}
+#reset-btn:hover { transform:scale(1.05); }
+#trash {
+  width:50px; height:50px;
+  background:linear-gradient(135deg,#636e72,#2d3436);
+  border-radius:12px; display:flex; align-items:center;
+  justify-content:center; font-size:1.6rem;
+  box-shadow:0 4px 15px rgba(0,0,0,0.4);
+  transition:all 0.3s; border:2px solid #636e72;
+  position:relative; z-index:1001;
+}
+#trash.drag-over {
+  background:linear-gradient(135deg,#e17055,#d63031);
+  border-color:#ff7675; transform:scale(1.2);
+  box-shadow:0 0 20px rgba(255,71,87,0.8);
+}
+
+/* ===== 주기율표 ===== */
+#pt-section { padding:6px 8px; text-align:center; }
+#pt-section>h2 { font-size:0.85rem; color:#a8b2ff; margin-bottom:5px; }
+#pt-wrapper {
+  display:inline-block;
+  background:rgba(255,255,255,0.05);
+  border-radius:12px; border:1px solid rgba(255,255,255,0.1); padding:6px;
+}
+#pt-container {
+  display:grid;
+  grid-template-columns: 30px repeat(18,38px);
+  grid-template-rows: 20px repeat(7,46px);
+  gap:2px;
+}
+.period-label,.group-label {
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.55rem; color:#6c7ae0; font-weight:bold; opacity:0.85;
+}
+.element {
+  width:38px; height:46px; border-radius:6px;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  cursor:grab; user-select:none;
+  transition:transform 0.15s,box-shadow 0.15s;
+  border:1px solid rgba(255,255,255,0.15); position:relative;
+}
+.element:hover { transform:scale(1.18); z-index:10; box-shadow:0 5px 20px rgba(255,255,255,0.35); }
+.element .sym { font-size:0.9rem; font-weight:bold; line-height:1.1; }
+.element .st  { font-size:0.37rem; opacity:0.85; margin-top:1px; text-align:center; }
+.element .num { font-size:0.37rem; opacity:0.7; position:absolute; top:2px; left:3px; }
+.nonmetal   { background:linear-gradient(135deg,#00b894,#00cec9); color:#fff; }
+.noble      { background:linear-gradient(135deg,#6c5ce7,#a29bfe); color:#fff; }
+.alkali     { background:linear-gradient(135deg,#e17055,#d63031); color:#fff; }
+.alkaline   { background:linear-gradient(135deg,#fdcb6e,#e67e22); color:#333; }
+.transition { background:linear-gradient(135deg,#74b9ff,#0984e3); color:#fff; }
+.metalloid  { background:linear-gradient(135deg,#55efc4,#00b894); color:#333; }
+.metal      { background:linear-gradient(135deg,#b2bec3,#636e72); color:#fff; }
+.halogen    { background:linear-gradient(135deg,#fd79a8,#e84393); color:#fff; }
+.hydrogen   { background:linear-gradient(135deg,#dfe6e9,#b2bec3); color:#333; }
+.empty-cell { background:transparent!important; border:none!important; pointer-events:none!important; }
+
+/* 범례 */
+#legend { display:flex; flex-wrap:wrap; justify-content:center; gap:5px; padding:3px 20px 6px; }
+.legend-item { display:flex; align-items:center; gap:3px; font-size:0.58rem; color:#b2bec3; }
+.legend-dot  { width:9px; height:9px; border-radius:3px; }
+
+/* ===== 작업대 ===== */
+#wb-section { padding:4px 15px 10px; text-align:center; }
+#wb-section>h2 { font-size:0.85rem; color:#a8b2ff; margin-bottom:5px; }
+#workbench {
+  position:relative; width:100%; max-width:960px; height:190px;
+  margin:0 auto;
+  background:rgba(255,255,255,0.06);
+  border:2px dashed rgba(130,170,255,0.5);
+  border-radius:15px; overflow:visible;
+}
+#workbench.drag-over-bench { border-color:#74b9ff; background:rgba(116,185,255,0.08); }
+#bench-msg {
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  color:rgba(255,255,255,0.25); font-size:0.78rem;
+  pointer-events:none; text-align:center; line-height:1.8;
+}
+#react-btn {
+  margin-top:8px; padding:9px 28px;
+  background:linear-gradient(135deg,#00b894,#00cec9);
+  border:none; border-radius:12px; color:white;
+  font-size:0.9rem; font-weight:bold; cursor:pointer;
+  box-shadow:0 4px 20px rgba(0,184,148,0.5);
+  transition:all 0.2s; letter-spacing:1px;
+}
+#react-btn:hover { transform:scale(1.05); }
+#react-btn:disabled { background:linear-gradient(135deg,#636e72,#2d3436); cursor:not-allowed; transform:none; }
+
+/* 힌트 */
+#hint-panel {
+  max-width:960px; margin:4px auto 6px;
+  background:rgba(108,92,231,0.15);
+  border-radius:8px; padding:6px 12px;
+  border-left:3px solid #6c5ce7;
+  font-size:0.7rem; color:#dfe6e9; line-height:1.8;
+}
+#hint-panel b { color:#a29bfe; }
+
+/* ===== 결과 영역 ===== */
+#result-area {
+  max-width:960px; margin:6px auto 15px;
+  display:none; gap:10px;
+  grid-template-columns:1fr 1fr;
+}
+#result-panel {
+  background:rgba(255,255,255,0.07); border-radius:12px;
+  padding:12px 15px; border-left:4px solid #00b894;
+  animation:slideIn 0.4s ease;
+}
+#result-panel h3 { font-size:0.88rem; color:#55efc4; margin-bottom:5px; }
+#result-panel p  { font-size:0.8rem; color:#dfe6e9; line-height:1.7; white-space:pre-line; }
+#bond-badge {
+  display:inline-block; margin-top:7px;
+  padding:4px 12px; border-radius:20px;
+  font-size:0.72rem; font-weight:bold;
+}
+.badge-covalent { background:linear-gradient(135deg,#00b894,#00cec9); color:#fff; }
+.badge-ionic    { background:linear-gradient(135deg,#fdcb6e,#e67e22); color:#333; }
+.badge-metallic { background:linear-gradient(135deg,#74b9ff,#0984e3); color:#fff; }
+.badge-none     { background:linear-gradient(135deg,#636e72,#2d3436); color:#fff; }
+
+/* ===== 구조 패널 ===== */
+#structure-panel {
+  background:rgba(10,10,30,0.85); border-radius:12px;
+  padding:10px 12px; border:2px solid #6c5ce7;
+  animation:slideIn 0.4s ease;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:flex-start;
+  min-height:180px;
+}
+#structure-panel h3 { font-size:0.88rem; color:#a29bfe; margin-bottom:6px; }
+#structure-canvas {
+  border-radius:8px;
+  background:#0a0a1e;
+  border:1px solid rgba(108,92,231,0.4);
+  display:block;
+}
+
+@keyframes slideIn {
+  from{opacity:0;transform:translateY(-8px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+/* 플로팅 */
+.floating-element {
+  position:fixed; width:44px; height:52px;
+  border-radius:8px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  user-select:none; z-index:9999; pointer-events:none;
+  box-shadow:0 8px 25px rgba(0,0,0,0.6);
+  border:2px solid rgba(255,255,255,0.5);
+}
+.floating-element .sym { font-size:1rem; font-weight:bold; }
+.floating-element .st  { font-size:0.37rem; }
+
+/* 작업대 원소 카드 */
+.bench-element {
+  position:absolute; width:46px; height:54px;
+  border-radius:8px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  cursor:grab; user-select:none;
+  border:2px solid rgba(255,255,255,0.3);
+  box-shadow:0 4px 12px rgba(0,0,0,0.4); z-index:5;
+  animation:popIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+@keyframes popIn {
+  from{transform:scale(0) rotate(-15deg);opacity:0;}
+  to{transform:scale(1) rotate(0);opacity:1;}
+}
+.bench-element .sym { font-size:0.95rem; font-weight:bold; }
+.bench-element .st  { font-size:0.37rem; }
+
+/* 생성물 카드 */
+.product-card {
+  position:absolute; min-width:68px; padding:6px 10px;
+  border-radius:10px;
+  background:linear-gradient(135deg,#2d3436,#1e272e);
+  border:2px solid #00b894; cursor:grab; user-select:none;
+  text-align:center; box-shadow:0 5px 20px rgba(0,184,148,0.5); z-index:10;
+  animation:productAppear 0.6s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+@keyframes productAppear {
+  0%{transform:scale(0) rotate(-20deg);opacity:0;}
+  60%{transform:scale(1.2) rotate(5deg);}
+  100%{transform:scale(1) rotate(0);opacity:1;}
+}
+.product-card .p-formula { font-size:0.95rem; font-weight:bold; color:#55efc4; }
+.product-card .p-name    { font-size:0.58rem; color:#b2bec3; margin-top:2px; }
+
+/* 애니메이션 */
+.converge-el {
+  position:fixed; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:bold; pointer-events:none; z-index:8500;
+  box-shadow:0 4px 20px rgba(255,255,255,0.4);
+  border:2px solid rgba(255,255,255,0.5);
+}
+.explosion-ring {
+  position:absolute; border-radius:50%; border:4px solid;
+  pointer-events:none; transform:translate(-50%,-50%);
+}
+.flash-overlay { position:fixed; inset:0; pointer-events:none; z-index:8200; opacity:0; }
+@keyframes shake {
+  0%,100%{transform:translate(0,0);}
+  10%{transform:translate(-4px,-2px);}
+  30%{transform:translate(4px,2px);}
+  50%{transform:translate(-3px,3px);}
+  70%{transform:translate(3px,-2px);}
+  90%{transform:translate(-2px,2px);}
+}
+</style>
+</head>
+<body>
+<h1>⚗️ 화학 결합 시뮬레이션</h1>
+<div id="top-bar">
+  <button id="reset-btn">🔄 초기화</button>
+  <div id="trash" title="여기로 드래그하면 삭제">🗑️</div>
+</div>
+
+<div id="pt-section">
+  <h2>📋 주기율표 — 드래그하여 작업대로 이동 | 작업대 안에서는 자유롭게 끌기 가능</h2>
+  <div id="pt-wrapper"><div id="pt-container"></div></div>
+</div>
+<div id="legend"></div>
+
+<div id="hint-panel">
+  <b>💡 계수비 힌트:</b>
+  H×2+O×1→H₂O | H×1+Cl×1→HCl | N×1+H×3→NH₃ | C×1+O×2→CO₂ | C×1+O×1→CO |
+  Na×1+Cl×1→NaCl | Mg×1+O×1→MgO | Fe×4+O×3→Fe₂O₃ | C×1+H×4→CH₄ |
+  O×2→O₂(단일) | N×2→N₂ | H×2→H₂ | Cl×2→Cl₂ | Fe×3→Fe금속 | H×2+S×1→H₂S |
+  N×1+O×1→NO | Na×2+O×1→Na₂O | Ca×1+Cl×2→CaCl₂ | C×2+H×6+O×1→에탄올 |
+  N×2+H×4+O×3→HNO₃ | H×3+P×1+O×4→H₃PO₄
+</div>
+
+<div id="wb-section">
+  <h2>🧪 반응 작업대</h2>
+  <div id="workbench">
+    <div id="bench-msg">원소를 계수비에 맞게 드래그하세요!<br>예) 물: H 2개 + O 1개</div>
+  </div>
+  <button id="react-btn">⚡ 반응 시작!</button>
+</div>
+
+<div id="result-area">
+  <div id="result-panel">
+    <h3 id="result-title"></h3>
+    <p id="result-desc"></p>
+    <div id="bond-badge"></div>
+  </div>
+  <div id="structure-panel">
+    <h3 id="struct-title">🔬 결합 구조</h3>
+    <canvas id="structure-canvas" width="320" height="200"></canvas>
+  </div>
+</div>
+
+<script>
+// ==================== 원소 데이터 ====================
+const ELEMENTS = [
+  {n:1,  sym:'H',  name:'수소',    state:'기체', type:'hydrogen',  col:1,  row:1},
+  {n:2,  sym:'He', name:'헬륨',    state:'기체', type:'noble',     col:18, row:1},
+  {n:3,  sym:'Li', name:'리튬',    state:'고체', type:'alkali',    col:1,  row:2},
+  {n:4,  sym:'Be', name:'베릴륨',  state:'고체', type:'alkaline',  col:2,  row:2},
+  {n:5,  sym:'B',  name:'붕소',    state:'고체', type:'metalloid', col:13, row:2},
+  {n:6,  sym:'C',  name:'탄소',    state:'고체', type:'nonmetal',  col:14, row:2},
+  {n:7,  sym:'N',  name:'질소',    state:'기체', type:'nonmetal',  col:15, row:2},
+  {n:8,  sym:'O',  name:'산소',    state:'기체', type:'nonmetal',  col:16, row:2},
+  {n:9,  sym:'F',  name:'플루오린',state:'기체', type:'halogen',   col:17, row:2},
+  {n:10, sym:'Ne', name:'네온',    state:'기체', type:'noble',     col:18, row:2},
+  {n:11, sym:'Na', name:'나트륨',  state:'고체', type:'alkali',    col:1,  row:3},
+  {n:12, sym:'Mg', name:'마그네슘',state:'고체', type:'alkaline',  col:2,  row:3},
+  {n:13, sym:'Al', name:'알루미늄',state:'고체', type:'metal',     col:13, row:3},
+  {n:14, sym:'Si', name:'규소',    state:'고체', type:'metalloid', col:14, row:3},
+  {n:15, sym:'P',  name:'인',      state:'고체', type:'nonmetal',  col:15, row:3},
+  {n:16, sym:'S',  name:'황',      state:'고체', type:'nonmetal',  col:16, row:3},
+  {n:17, sym:'Cl', name:'염소',    state:'기체', type:'halogen',   col:17, row:3},
+  {n:18, sym:'Ar', name:'아르곤',  state:'기체', type:'noble',     col:18, row:3},
+  {n:19, sym:'K',  name:'칼륨',    state:'고체', type:'alkali',    col:1,  row:4},
+  {n:20, sym:'Ca', name:'칼슘',    state:'고체', type:'alkaline',  col:2,  row:4},
+  {n:21, sym:'Sc', name:'스칸듐',  state:'고체', type:'transition',col:3,  row:4},
+  {n:22, sym:'Ti', name:'타이타늄',state:'고체', type:'transition',col:4,  row:4},
+  {n:23, sym:'V',  name:'바나듐',  state:'고체', type:'transition',col:5,  row:4},
+  {n:24, sym:'Cr', name:'크로뮴',  state:'고체', type:'transition',col:6,  row:4},
+  {n:25, sym:'Mn', name:'망가니즈',state:'고체', type:'transition',col:7,  row:4},
+  {n:26, sym:'Fe', name:'철',      state:'고체', type:'transition',col:8,  row:4},
+  {n:27, sym:'Co', name:'코발트',  state:'고체', type:'transition',col:9,  row:4},
+  {n:28, sym:'Ni', name:'니켈',    state:'고체', type:'transition',col:10, row:4},
+  {n:29, sym:'Cu', name:'구리',    state:'고체', type:'transition',col:11, row:4},
+  {n:30, sym:'Zn', name:'아연',    state:'고체', type:'transition',col:12, row:4},
+  {n:31, sym:'Ga', name:'갈륨',    state:'고체', type:'metal',     col:13, row:4},
+  {n:32, sym:'Ge', name:'저마늄',  state:'고체', type:'metalloid', col:14, row:4},
+  {n:33, sym:'As', name:'비소',    state:'고체', type:'metalloid', col:15, row:4},
+  {n:34, sym:'Se', name:'셀레늄',  state:'고체', type:'nonmetal',  col:16, row:4},
+  {n:35, sym:'Br', name:'브로민',  state:'액체', type:'halogen',   col:17, row:4},
+  {n:36, sym:'Kr', name:'크립톤',  state:'기체', type:'noble',     col:18, row:4},
+  {n:37, sym:'Rb', name:'루비듐',  state:'고체', type:'alkali',    col:1,  row:5},
+  {n:38, sym:'Sr', name:'스트론튬',state:'고체', type:'alkaline',  col:2,  row:5},
+  {n:39, sym:'Y',  name:'이트륨',  state:'고체', type:'transition',col:3,  row:5},
+  {n:40, sym:'Zr', name:'지르코늄',state:'고체', type:'transition',col:4,  row:5},
+  {n:41, sym:'Nb', name:'나이오븀',state:'고체', type:'transition',col:5,  row:5},
+  {n:42, sym:'Mo', name:'몰리브데넘',state:'고체',type:'transition',col:6, row:5},
+  {n:44, sym:'Ru', name:'루테늄',  state:'고체', type:'transition',col:8,  row:5},
+  {n:45, sym:'Rh', name:'로듐',    state:'고체', type:'transition',col:9,  row:5},
+  {n:46, sym:'Pd', name:'팔라듐',  state:'고체', type:'transition',col:10, row:5},
+  {n:47, sym:'Ag', name:'은',      state:'고체', type:'transition',col:11, row:5},
+  {n:48, sym:'Cd', name:'카드뮴',  state:'고체', type:'transition',col:12, row:5},
+  {n:49, sym:'In', name:'인듐',    state:'고체', type:'metal',     col:13, row:5},
+  {n:50, sym:'Sn', name:'주석',    state:'고체', type:'metal',     col:14, row:5},
+  {n:51, sym:'Sb', name:'안티모니',state:'고체', type:'metalloid', col:15, row:5},
+  {n:52, sym:'Te', name:'텔루륨',  state:'고체', type:'metalloid', col:16, row:5},
+  {n:53, sym:'I',  name:'아이오딘',state:'고체', type:'halogen',   col:17, row:5},
+  {n:54, sym:'Xe', name:'제논',    state:'기체', type:'noble',     col:18, row:5},
+  {n:55, sym:'Cs', name:'세슘',    state:'고체', type:'alkali',    col:1,  row:6},
+  {n:56, sym:'Ba', name:'바륨',    state:'고체', type:'alkaline',  col:2,  row:6},
+  {n:72, sym:'Hf', name:'하프늄',  state:'고체', type:'transition',col:4,  row:6},
+  {n:73, sym:'Ta', name:'탄탈럼',  state:'고체', type:'transition',col:5,  row:6},
+  {n:74, sym:'W',  name:'텅스텐',  state:'고체', type:'transition',col:6,  row:6},
+  {n:75, sym:'Re', name:'레늄',    state:'고체', type:'transition',col:7,  row:6},
+  {n:76, sym:'Os', name:'오스뮴',  state:'고체', type:'transition',col:8,  row:6},
+  {n:77, sym:'Ir', name:'이리듐',  state:'고체', type:'transition',col:9,  row:6},
+  {n:78, sym:'Pt', name:'백금',    state:'고체', type:'transition',col:10, row:6},
+  {n:79, sym:'Au', name:'금',      state:'고체', type:'transition',col:11, row:6},
+  {n:80, sym:'Hg', name:'수은',    state:'액체', type:'transition',col:12, row:6},
+  {n:81, sym:'Tl', name:'탈륨',    state:'고체', type:'metal',     col:13, row:6},
+  {n:82, sym:'Pb', name:'납',      state:'고체', type:'metal',     col:14, row:6},
+  {n:83, sym:'Bi', name:'비스무트',state:'고체', type:'metal',     col:15, row:6},
+  {n:85, sym:'At', name:'아스타틴',state:'고체', type:'halogen',   col:17, row:6},
+  {n:86, sym:'Rn', name:'라돈',    state:'기체', type:'noble',     col:18, row:6},
+  {n:87, sym:'Fr', name:'프랑슘',  state:'고체', type:'alkali',    col:1,  row:7},
+  {n:88, sym:'Ra', name:'라듐',    state:'고체', type:'alkaline',  col:2,  row:7},
+];
+
+const LEGEND_DATA=[
+  {type:'hydrogen',label:'수소',color:'#b2bec3'},
+  {type:'alkali',label:'알칼리 금속',color:'#e17055'},
+  {type:'alkaline',label:'알칼리 토금속',color:'#fdcb6e'},
+  {type:'transition',label:'전이 금속',color:'#74b9ff'},
+  {type:'metal',label:'금속',color:'#b2bec3'},
+  {type:'metalloid',label:'준금속',color:'#55efc4'},
+  {type:'nonmetal',label:'비금속',color:'#00b894'},
+  {type:'halogen',label:'할로젠',color:'#fd79a8'},
+  {type:'noble',label:'비활성 기체',color:'#a29bfe'},
+];
+
+// ==================== 반응 데이터 ====================
+const REACTIONS = [
+  // ── 이원자 분자 (단일 원소 결합) ──
+  {id:'H2',   reactants:[{sym:'H',count:2}],
+   product:'H₂', name:'수소 분자', type:'결합(비극성 공유)', bondType:'covalent', color:'#b2bec3',
+   equation:'H + H → H₂',
+   desc:'수소 원자 2개가 단일 공유 결합을 형성합니다.\n가장 가벼운 기체이며 연료 전지에 사용됩니다.', draw:'drawH2'},
+
+  {id:'O2',   reactants:[{sym:'O',count:2}],
+   product:'O₂', name:'산소 분자', type:'결합(비극성 공유)', bondType:'covalent', color:'#ff4444',
+   equation:'O + O → O₂',
+   desc:'산소 원자 2개가 이중 공유 결합을 형성합니다.\n생명 유지에 필수적인 기체입니다.', draw:'drawO2'},
+
+  {id:'N2',   reactants:[{sym:'N',count:2}],
+   product:'N₂', name:'질소 분자', type:'결합(비극성 공유)', bondType:'covalent', color:'#6c5ce7',
+   equation:'N + N → N₂',
+   desc:'질소 원자 2개가 삼중 공유 결합을 형성합니다.\n대기의 약 78%를 차지합니다.', draw:'drawN2'},
+
+  {id:'Cl2',  reactants:[{sym:'Cl',count:2}],
+   product:'Cl₂', name:'염소 분자', type:'결합(비극성 공유)', bondType:'covalent', color:'#00cec9',
+   equation:'Cl + Cl → Cl₂',
+   desc:'염소 원자 2개가 단일 공유 결합을 형성합니다.\n황록색 독성 기체입니다.', draw:'drawCl2'},
+
+  {id:'F2',   reactants:[{sym:'F',count:2}],
+   product:'F₂', name:'플루오린 분자', type:'결합(비극성 공유)', bondType:'covalent', color:'#fd79a8',
+   equation:'F + F → F₂',
+   desc:'플루오린 원자 2개가 단일 공유 결합을 형성합니다.\n반응성이 가장 강한 기체입니다.', draw:'drawF2'},
+
+  {id:'Br2',  reactants:[{sym:'Br',count:2}],
+   product:'Br₂', name:'브로민 분자', type:'결합(비극성 공유)', bondType:'covalent', color:'#e17055',
+   equation:'Br + Br → Br₂',
+   desc:'브로민 원자 2개가 단일 공유 결합을 형성합니다.\n상온에서 액체인 비금속입니다.', draw:'drawBr2'},
+
+  {id:'I2',   reactants:[{sym:'I',count:2}],
+   product:'I₂', name:'아이오딘 분자', type:'결합(비극성 공유)', bondType:'covalent', color:'#6c5ce7',
+   equation:'I + I → I₂',
+   desc:'아이오딘 원자 2개가 단일 공유 결합을 형성합니다.\n상온에서 고체이며 보라색 증기를 냅니다.', draw:'drawI2'},
+
+  // ── 금속 결합 ──
+  {id:'Fe_m', reactants:[{sym:'Fe',count:3}],
+   product:'Fe', name:'철(금속 결합)', type:'금속 결합', bondType:'metallic', color:'#74b9ff',
+   equation:'Fe(s) 금속 결합',
+   desc:'철 원자들이 금속 결합을 형성합니다.\n자유 전자의 바다 모형으로 설명합니다.\n전기·열 전도성이 우수합니다.', draw:'drawMetal'},
+
+  {id:'Cu_m', reactants:[{sym:'Cu',count:3}],
+   product:'Cu', name:'구리(금속 결합)', type:'금속 결합', bondType:'metallic', color:'#e17055',
+   equation:'Cu(s) 금속 결합',
+   desc:'구리 원자들이 금속 결합을 형성합니다.\n전기 전도성이 매우 우수합니다.', draw:'drawMetal'},
+
+  {id:'Au_m', reactants:[{sym:'Au',count:3}],
+   product:'Au', name:'금(금속 결합)', type:'금속 결합', bondType:'metallic', color:'#fdcb6e',
+   equation:'Au(s) 금속 결합',
+   desc:'금 원자들이 금속 결합을 형성합니다.\n연성·전성이 매우 크고 부식되지 않습니다.', draw:'drawMetal'},
+
+  // ── 이성분 화합물 ──
+  {id:'H2O',  reactants:[{sym:'H',count:2},{sym:'O',count:1}],
+   product:'H₂O', name:'물', type:'합성 반응', bondType:'covalent', color:'#74b9ff',
+   equation:'2H₂ + O₂ → 2H₂O',
+   desc:'수소와 산소가 공유 결합하여 물을 형성합니다.\n굽은형(V형) 구조, 결합각 ≈ 104.5°\n극성 공유 결합입니다.', draw:'drawH2O'},
+
+  {id:'H2O2', reactants:[{sym:'H',count:2},{sym:'O',count:2}],
+   product:'H₂O₂', name:'과산화수소', type:'합성 반응', bondType:'covalent', color:'#74b9ff',
+   equation:'H₂ + O₂ → H₂O₂',
+   desc:'H-O-O-H 구조의 극성 공유 결합 분자.\n소독약 성분으로 사용됩니다.', draw:'drawH2O2'},
+
+  {id:'CO2',  reactants:[{sym:'C',count:1},{sym:'O',count:2}],
+   product:'CO₂', name:'이산화탄소', type:'산화 반응', bondType:'covalent', color:'#fd79a8',
+   equation:'C + O₂ → CO₂',
+   desc:'O=C=O 선형 구조, 이중 공유 결합.\n탄소의 완전 연소 생성물입니다.', draw:'drawCO2'},
+
+  {id:'CO',   reactants:[{sym:'C',count:1},{sym:'O',count:1}],
+   product:'CO', name:'일산화탄소', type:'불완전 산화', bondType:'covalent', color:'#fd79a8',
+   equation:'2C + O₂ → 2CO',
+   desc:'C≡O 삼중 결합 구조.\n탄소의 불완전 연소로 생성되는 독성 기체입니다.', draw:'drawCO'},
+
+  {id:'NaCl', reactants:[{sym:'Na',count:1},{sym:'Cl',count:1}],
+   product:'NaCl', name:'염화나트륨(소금)', type:'합성 반응', bondType:'ionic', color:'#fdcb6e',
+   equation:'2Na + Cl₂ → 2NaCl',
+   desc:'Na → Na⁺(전자 1개 잃음)\nCl → Cl⁻(전자 1개 얻음)\n강한 이온 결합으로 소금이 형성됩니다.', draw:'drawNaCl'},
+
+  {id:'HCl',  reactants:[{sym:'H',count:1},{sym:'Cl',count:1}],
+   product:'HCl', name:'염화수소', type:'합성 반응', bondType:'covalent', color:'#00cec9',
+   equation:'H₂ + Cl₂ → 2HCl',
+   desc:'H-Cl 극성 공유 결합.\n물에 녹으면 강산(염산)이 됩니다.', draw:'drawHCl'},
+
+  {id:'HF',   reactants:[{sym:'H',count:1},{sym:'F',count:1}],
+   product:'HF', name:'플루오린화수소', type:'합성 반응', bondType:'covalent', color:'#fd79a8',
+   equation:'H₂ + F₂ → 2HF',
+   desc:'H-F 강한 극성 공유 결합.\nF의 전기음성도가 4.0으로 가장 큽니다.', draw:'drawHF'},
+
+  {id:'MgO',  reactants:[{sym:'Mg',count:1},{sym:'O',count:1}],
+   product:'MgO', name:'산화마그네슘', type:'합성 반응', bondType:'ionic', color:'#fdcb6e',
+   equation:'2Mg + O₂ → 2MgO',
+   desc:'Mg²⁺와 O²⁻의 이온 결합.\n전자 2개가 이동하는 강한 이온 결합입니다.', draw:'drawMgO'},
+
+  {id:'CaO',  reactants:[{sym:'Ca',count:1},{sym:'O',count:1}],
+   product:'CaO', name:'산화칼슘(생석회)', type:'합성 반응', bondType:'ionic', color:'#fdcb6e',
+   equation:'2Ca + O₂ → 2CaO',
+   desc:'Ca²⁺와 O²⁻의 이온 결합.\n생석회라 불리며 시멘트 원료입니다.', draw:'drawCaO'},
+
+  {id:'H2S',  reactants:[{sym:'H',count:2},{sym:'S',count:1}],
+   product:'H₂S', name:'황화수소', type:'합성 반응', bondType:'covalent', color:'#ffeaa7',
+   equation:'H₂ + S → H₂S',
+   desc:'H₂O와 유사한 굽은형 구조.\n결합각 ≈ 92°, 달걀 썩는 냄새의 독성 기체.', draw:'drawH2S'},
+
+  {id:'SO2',  reactants:[{sym:'S',count:1},{sym:'O',count:2}],
+   product:'SO₂', name:'이산화황', type:'산화 반응', bondType:'covalent', color:'#fd79a8',
+   equation:'S + O₂ → SO₂',
+   desc:'굽은형 구조, 결합각 ≈ 119°.\n산성비의 원인 물질입니다.', draw:'drawSO2'},
+
+  {id:'NO',   reactants:[{sym:'N',count:1},{sym:'O',count:1}],
+   product:'NO', name:'일산화질소', type:'합성 반응', bondType:'covalent', color:'#a29bfe',
+   equation:'N₂ + O₂ → 2NO',
+   desc:'N=O 이중 결합(홀전자 있음).\n혈관 이완 신호 물질입니다.', draw:'drawNO'},
+
+  {id:'Na2O', reactants:[{sym:'Na',count:2},{sym:'O',count:1}],
+   product:'Na₂O', name:'산화나트륨', type:'합성 반응', bondType:'ionic', color:'#e17055',
+   equation:'4Na + O₂ → 2Na₂O',
+   desc:'2×Na⁺와 O²⁻의 이온 결합.\n물과 반응하면 강염기 NaOH가 됩니다.', draw:'drawNa2O'},
+
+  {id:'CaCl2',reactants:[{sym:'Ca',count:1},{sym:'Cl',count:2}],
+   product:'CaCl₂', name:'염화칼슘', type:'합성 반응', bondType:'ionic', color:'#fdcb6e',
+   equation:'Ca + Cl₂ → CaCl₂',
+   desc:'Ca²⁺와 2×Cl⁻의 이온 결합.\n제습제·도로 제설제로 사용됩니다.', draw:'drawCaCl2'},
+
+  {id:'Fe2O3',reactants:[{sym:'Fe',count:4},{sym:'O',count:3}],
+   product:'Fe₂O₃', name:'산화철(녹)', type:'산화·환원', bondType:'ionic', color:'#e17055',
+   equation:'4Fe + 3O₂ → 2Fe₂O₃',
+   desc:'Fe³⁺와 O²⁻의 이온 결합.\n철이 산화되어 녹이 되는 반응입니다.', draw:'drawFe2O3'},
+
+  {id:'Al2O3',reactants:[{sym:'Al',count:4},{sym:'O',count:3}],
+   product:'Al₂O₃', name:'산화알루미늄', type:'합성 반응', bondType:'ionic', color:'#b2bec3',
+   equation:'4Al + 3O₂ → 2Al₂O₃',
+   desc:'Al³⁺와 O²⁻의 이온 결합.\n알루미늄 표면 보호막 역할을 합니다.', draw:'drawAl2O3'},
+
+  // ── 3원소 이상 화합물 ──
+  {id:'NH3',  reactants:[{sym:'N',count:1},{sym:'H',count:3}],
+   product:'NH₃', name:'암모니아', type:'합성 반응', bondType:'covalent', color:'#a29bfe',
+   equation:'N₂ + 3H₂ → 2NH₃',
+   desc:'삼각뿔형 구조, 비공유 전자쌍 1쌍.\n결합각 ≈ 107°, 비료·냉매에 사용됩니다.', draw:'drawNH3'},
+
+  {id:'CH4',  reactants:[{sym:'C',count:1},{sym:'H',count:4}],
+   product:'CH₄', name:'메탄', type:'합성 반응', bondType:'covalent', color:'#00b894',
+   equation:'C + 2H₂ → CH₄',
+   desc:'정사면체형 구조, 결합각 ≈ 109.5°.\n비극성 공유 결합, 천연가스의 주성분입니다.', draw:'drawCH4'},
+
+  {id:'SO3',  reactants:[{sym:'S',count:1},{sym:'O',count:3}],
+   product:'SO₃', name:'삼산화황', type:'산화 반응', bondType:'covalent', color:'#fd79a8',
+   equation:'2SO₂ + O₂ → 2SO₃',
+   desc:'평면 삼각형 구조, 결합각 = 120°.\n황산 제조의 중간 생성물입니다.', draw:'drawSO3'},
+
+  {id:'NO2',  reactants:[{sym:'N',count:1},{sym:'O',count:2}],
+   product:'NO₂', name:'이산화질소', type:'산화 반응', bondType:'covalent', color:'#a29bfe',
+   equation:'2NO + O₂ → 2NO₂',
+   desc:'굽은형 구조, 결합각 ≈ 134°.\n갈색 독성 기체, 광화학 스모그 원인입니다.', draw:'drawNO2'},
+
+  {id:'SiO2', reactants:[{sym:'Si',count:1},{sym:'O',count:2}],
+   product:'SiO₂', name:'이산화규소', type:'합성 반응', bondType:'covalent', color:'#dfe6e9',
+   equation:'Si + O₂ → SiO₂',
+   desc:'공유 결합 결정 구조.\n모래의 주성분, 반도체·유리 원료입니다.', draw:'drawSiO2'},
+
+  // ── 3원소 이상 (N,H,O / C,H,O 등) ──
+  {id:'HNO3', reactants:[{sym:'H',count:1},{sym:'N',count:1},{sym:'O',count:3}],
+   product:'HNO₃', name:'질산', type:'합성 반응(3원소)', bondType:'covalent', color:'#a29bfe',
+   equation:'3NO₂ + H₂O → 2HNO₃ + NO',
+   desc:'N이 중심, O 3개와 H 1개가 결합.\nH-O-N(=O)₂ 구조, 강산입니다.\n비료·화약 제조에 사용됩니다.', draw:'drawHNO3'},
+
+  {id:'H2SO4',reactants:[{sym:'H',count:2},{sym:'S',count:1},{sym:'O',count:4}],
+   product:'H₂SO₄', name:'황산', type:'합성 반응(3원소)', bondType:'covalent', color:'#ffeaa7',
+   equation:'SO₃ + H₂O → H₂SO₄',
+   desc:'S가 중심, O 4개와 H 2개 결합.\n사면체형 구조의 강산입니다.\n배터리·비료 제조에 사용됩니다.', draw:'drawH2SO4'},
+
+  {id:'H3PO4',reactants:[{sym:'H',count:3},{sym:'P',count:1},{sym:'O',count:4}],
+   product:'H₃PO₄', name:'인산', type:'합성 반응(3원소)', bondType:'covalent', color:'#00b894',
+   equation:'P₄O₁₀ + 6H₂O → 4H₃PO₄',
+   desc:'P가 중심, O 4개와 H 3개 결합.\n사면체형 구조의 중간 강도 산.\n비료·세제·식품 첨가물로 사용됩니다.', draw:'drawH3PO4'},
+
+  {id:'NaOH', reactants:[{sym:'Na',count:1},{sym:'O',count:1},{sym:'H',count:1}],
+   product:'NaOH', name:'수산화나트륨', type:'합성 반응(3원소)', bondType:'ionic', color:'#e17055',
+   equation:'Na₂O + H₂O → 2NaOH',
+   desc:'Na⁺와 OH⁻의 이온 결합.\nOH⁻ 내부는 공유 결합.\n강염기로 비누·제지 산업에 사용됩니다.', draw:'drawNaOH'},
+
+  {id:'NH4Cl',reactants:[{sym:'N',count:1},{sym:'H',count:4},{sym:'Cl',count:1}],
+   product:'NH₄Cl', name:'염화암모늄', type:'합성 반응(3원소)', bondType:'ionic', color:'#a29bfe',
+   equation:'NH₃ + HCl → NH₄Cl',
+   desc:'NH₄⁺와 Cl⁻의 이온 결합.\nNH₄⁺ 내부는 공유 결합+배위 결합.\n비료·의약품에 사용됩니다.', draw:'drawNH4Cl'},
+
+  {id:'KNO3', reactants:[{sym:'K',count:1},{sym:'N',count:1},{sym:'O',count:3}],
+   product:'KNO₃', name:'질산칼륨', type:'합성 반응(3원소)', bondType:'ionic', color:'#e17055',
+   equation:'KOH + HNO₃ → KNO₃ + H₂O',
+   desc:'K⁺와 NO₃⁻의 이온 결합.\nNO₃⁻ 내부는 공유 결합.\n화약·비료에 사용됩니다.', draw:'drawKNO3'},
+
+  {id:'C2H6', reactants:[{sym:'C',count:2},{sym:'H',count:6}],
+   product:'C₂H₆', name:'에탄', type:'합성 반응(다원소)', bondType:'covalent', color:'#00b894',
+   equation:'2C + 3H₂ → C₂H₆',
+   desc:'C-C 단일 결합 + C-H 결합 6개.\n정사면체형 구조, 천연가스 성분.\n비극성 공유 결합입니다.', draw:'drawC2H6'},
+
+  {id:'C2H5OH',reactants:[{sym:'C',count:2},{sym:'H',count:6},{sym:'O',count:1}],
+   product:'C₂H₅OH', name:'에탄올', type:'합성 반응(다원소)', bondType:'covalent', color:'#00cec9',
+   equation:'2C + 3H₂ + ½O₂ → C₂H₅OH',
+   desc:'C-C-O 뼈대 구조, 극성 공유 결합.\n소독·연료로 사용됩니다.', draw:'drawC2H5OH'},
+];
+
+// ==================== 전역 상태 ====================
+let benchElements=[], dragging=null, idCounter=0, isAnimating=false;
+
+// ==================== 유틸 ====================
+function getGrad(t){
+  const m={hydrogen:'linear-gradient(135deg,#dfe6e9,#b2bec3)',
+    alkali:'linear-gradient(135deg,#e17055,#d63031)',
+    alkaline:'linear-gradient(135deg,#fdcb6e,#e67e22)',
+    transition:'linear-gradient(135deg,#74b9ff,#0984e3)',
+    metal:'linear-gradient(135deg,#b2bec3,#636e72)',
+    metalloid:'linear-gradient(135deg,#55efc4,#00b894)',
+    nonmetal:'linear-gradient(135deg,#00b894,#00cec9)',
+    halogen:'linear-gradient(135deg,#fd79a8,#e84393)',
+    noble:'linear-gradient(135deg,#6c5ce7,#a29bfe)'};
+  return m[t]||'linear-gradient(135deg,#636e72,#2d3436)';
+}
+function isDark(t){return ['alkaline','metalloid','hydrogen'].includes(t);}
+function rand(a,b){return Math.random()*(b-a)+a;}
+function randInt(a,b){return Math.floor(rand(a,b));}
+
+// ==================== 주기율표 ====================
+function buildPT(){
+  const c=document.getElementById('pt-container');
+  c.innerHTML='';
+  const grid={};
+  ELEMENTS.forEach(el=>{grid[`${el.row}-${el.col}`]=el;});
+
+  // 첫 행: 빈칸 + 족 라벨
+  const tl=document.createElement('div'); c.appendChild(tl);
+  for(let g=1;g<=18;g++){
+    const d=document.createElement('div');
+    d.className='group-label'; d.textContent=g+'족'; c.appendChild(d);
+  }
+
+  for(let r=1;r<=7;r++){
+    const pl=document.createElement('div');
+    pl.className='period-label'; pl.textContent=r+'주기'; c.appendChild(pl);
+
+    for(let col=1;col<=18;col++){
+      if(r===6&&col===3){
+        const d=document.createElement('div');
+        d.className='element empty-cell';
+        d.style.cssText='background:rgba(255,235,150,0.1)!important;border:1px dashed rgba(255,235,150,0.3)!important;pointer-events:none!important;font-size:0.32rem;color:rgba(255,235,150,0.6);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+        d.innerHTML='<span>57-71</span><span>란타넘족</span>'; c.appendChild(d); continue;
+      }
+      if(r===7&&col===3){
+        const d=document.createElement('div');
+        d.className='element empty-cell';
+        d.style.cssText='background:rgba(129,236,236,0.1)!important;border:1px dashed rgba(129,236,236,0.3)!important;pointer-events:none!important;font-size:0.32rem;color:rgba(129,236,236,0.6);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+        d.innerHTML='<span>89-103</span><span>악티늄족</span>'; c.appendChild(d); continue;
+      }
+      const el=grid[`${r}-${col}`];
+      const cell=document.createElement('div');
+      if(el){
+        cell.className=`element ${el.type}`;
+        cell.innerHTML=`<span class="num">${el.n}</span><span class="sym">${el.sym}</span><span class="st">${el.state}</span>`;
+        cell.title=`${el.name} (${el.n}번)`;
+        cell.addEventListener('mousedown',e=>startTableDrag(e,el));
+        cell.addEventListener('touchstart',e=>startTableDragTouch(e,el),{passive:false});
+      } else {
+        cell.className='element empty-cell';
+        cell.style.cssText='background:transparent!important;border:none!important;pointer-events:none!important;';
+      }
+      c.appendChild(cell);
+    }
+  }
+}
+
+function buildLegend(){
+  const el=document.getElementById('legend');
+  LEGEND_DATA.forEach(l=>{
+    const d=document.createElement('div'); d.className='legend-item';
+    d.innerHTML=`<div class="legend-dot" style="background:${l.color}"></div>${l.label}`;
+    el.appendChild(d);
+  });
+}
+
+// ==================== 플로팅 원소 생성 ====================
+function createFloat(elData,x,y){
+  const div=document.createElement('div');
+  div.className=`floating-element ${elData.type}`;
+  div.style.left=(x-22)+'px'; div.style.top=(y-26)+'px';
+  div.innerHTML=`<span class="sym">${elData.sym}</span><span class="st">${elData.state}</span>`;
+  document.body.appendChild(div); return div;
+}
+
+// ==================== 주기율표 드래그 ====================
+function startTableDrag(e,el){
+  e.preventDefault();
+  const floatEl=createFloat(el,e.clientX,e.clientY);
+  dragging={floatEl,elData:el,fromTable:true};
+  const move=ev=>{
+    floatEl.style.left=(ev.clientX-22)+'px';
+    floatEl.style.top=(ev.clientY-26)+'px';
+    hlDrop(ev.clientX,ev.clientY);
+  };
+  const up=ev=>{
+    document.removeEventListener('mousemove',move);
+    document.removeEventListener('mouseup',up);
+    finishTableDrop(ev.clientX,ev.clientY);
+    floatEl.remove(); dragging=null;
+  };
+  document.addEventListener('mousemove',move);
+  document.addEventListener('mouseup',up);
+}
+function startTableDragTouch(e,el){
+  e.preventDefault();
+  const t=e.touches[0];
+  const floatEl=createFloat(el,t.clientX,t.clientY);
+  dragging={floatEl,elData:el,fromTable:true};
+  const move=ev=>{
+    ev.preventDefault();
+    const tt=ev.touches[0];
+    floatEl.style.left=(tt.clientX-22)+'px';
+    floatEl.style.top=(tt.clientY-26)+'px';
+    hlDrop(tt.clientX,tt.clientY);
+  };
+  const up=ev=>{
+    document.removeEventListener('touchmove',move);
+    document.removeEventListener('touchend',up);
+    const tt=ev.changedTouches[0];
+    finishTableDrop(tt.clientX,tt.clientY);
+    floatEl.remove(); dragging=null;
+  };
+  document.addEventListener('touchmove',move,{passive:false});
+  document.addEventListener('touchend',up);
+}
+
+function hlDrop(cx,cy){
+  const bench=document.getElementById('workbench');
+  const trash=document.getElementById('trash');
+  const br=bench.getBoundingClientRect();
+  const tr=trash.getBoundingClientRect();
+  bench.classList.toggle('drag-over-bench',cx>=br.left&&cx<=br.right&&cy>=br.top&&cy<=br.bottom);
+  trash.classList.toggle('drag-over',cx>=tr.left&&cx<=tr.right&&cy>=tr.top&&cy<=tr.bottom);
+}
+
+function finishTableDrop(cx,cy){
+  const bench=document.getElementById('workbench');
+  const trash=document.getElementById('trash');
+  const br=bench.getBoundingClientRect();
+  const tr=trash.getBoundingClientRect();
+  bench.classList.remove('drag-over-bench');
+  trash.classList.remove('drag-over');
+  if(cx>=br.left&&cx<=br.right&&cy>=br.top&&cy<=br.bottom){
+    const x=Math.max(5,Math.min(br.width-51,cx-br.left-23));
+    const y=Math.max(5,Math.min(br.height-59,cy-br.top-27));
+    addToBench(dragging.elData,x,y);
+  }
+}
+
+// ==================== 작업대 관리 ====================
+function addToBench(elData,x,y){
+  const id=idCounter++;
+  benchElements.push({id,...elData,x,y});
+  renderBench();
+}
+function removeBenchEl(id){
+  benchElements=benchElements.filter(e=>e.id!==id);
+  renderBench();
+}
+
+function renderBench(){
+  const bench=document.getElementById('workbench');
+  bench.querySelectorAll('.bench-element,.product-card').forEach(e=>e.remove());
+  document.getElementById('bench-msg').style.display=benchElements.length===0?'block':'none';
+  benchElements.forEach(elData=>{
+    const card=document.createElement('div');
+    card.className=`bench-element ${elData.type}`;
+    card.style.left=elData.x+'px'; card.style.top=elData.y+'px';
+    card.innerHTML=`<span class="sym">${elData.sym}</span><span class="st">${elData.state}</span>`;
+    card.title=elData.name;
+    card.addEventListener('mousedown',e=>startBenchMove(e,elData.id,card));
+    card.addEventListener('touchstart',e=>startBenchMoveTouch(e,elData.id,card),{passive:false});
+    bench.appendChild(card);
+  });
+}
+
+// ==================== 작업대 내 이동 (개선된 휴지통 감지) ====================
+function startBenchMove(e,id,cardEl){
+  e.preventDefault(); e.stopPropagation();
+  const bench=document.getElementById('workbench');
+  const br=bench.getBoundingClientRect();
+  const el=benchElements.find(el=>el.id===id);
+  if(!el)return;
+  let ox=e.clientX-br.left-el.x;
+  let oy=e.clientY-br.top-el.y;
+
+  // 카드를 body 레벨 플로팅으로 올려서 overflow 제한 없앰
+  const floatEl=document.createElement('div');
+  floatEl.className=`floating-element ${el.type}`;
+  floatEl.style.left=(e.clientX-22)+'px';
+  floatEl.style.top=(e.clientY-26)+'px';
+  floatEl.innerHTML=`<span class="sym">${el.sym}</span><span class="st">${el.state}</span>`;
+  floatEl.style.pointerEvents='none';
+  document.body.appendChild(floatEl);
+  cardEl.style.opacity='0.3';
+
+  function move(ev){
+    floatEl.style.left=(ev.clientX-22)+'px';
+    floatEl.style.top=(ev.clientY-26)+'px';
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    document.getElementById('trash').classList.toggle('drag-over',
+      ev.clientX>=tr.left&&ev.clientX<=tr.right&&ev.clientY>=tr.top&&ev.clientY<=tr.bottom);
+    const brr=bench.getBoundingClientRect();
+    bench.classList.toggle('drag-over-bench',
+      ev.clientX>=brr.left&&ev.clientX<=brr.right&&ev.clientY>=brr.top&&ev.clientY<=brr.bottom);
+  }
+  function up(ev){
+    document.removeEventListener('mousemove',move);
+    document.removeEventListener('mouseup',up);
+    floatEl.remove();
+    cardEl.style.opacity='';
+    document.getElementById('trash').classList.remove('drag-over');
+    bench.classList.remove('drag-over-bench');
+
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    const brr=bench.getBoundingClientRect();
+
+    if(ev.clientX>=tr.left&&ev.clientX<=tr.right&&ev.clientY>=tr.top&&ev.clientY<=tr.bottom){
+      // 휴지통에 버리기
+      trashFx(); removeBenchEl(id);
+    } else {
+      // 작업대 내 이동 (작업대 밖이어도 마지막 위치로)
+      const idx=benchElements.findIndex(el=>el.id===id);
+      if(idx!==-1){
+        const nx=ev.clientX-brr.left-ox;
+        const ny=ev.clientY-brr.top-oy;
+        benchElements[idx].x=Math.max(0,Math.min(brr.width-50,nx));
+        benchElements[idx].y=Math.max(0,Math.min(brr.height-58,ny));
+      }
+      renderBench();
+    }
+  }
+  document.addEventListener('mousemove',move);
+  document.addEventListener('mouseup',up);
+}
+
+function startBenchMoveTouch(e,id,cardEl){
+  e.preventDefault(); e.stopPropagation();
+  const bench=document.getElementById('workbench');
+  const br=bench.getBoundingClientRect();
+  const el=benchElements.find(el=>el.id===id);
+  if(!el)return;
+  const t0=e.touches[0];
+  let ox=t0.clientX-br.left-el.x;
+  let oy=t0.clientY-br.top-el.y;
+
+  const floatEl=document.createElement('div');
+  floatEl.className=`floating-element ${el.type}`;
+  floatEl.style.left=(t0.clientX-22)+'px';
+  floatEl.style.top=(t0.clientY-26)+'px';
+  floatEl.innerHTML=`<span class="sym">${el.sym}</span><span class="st">${el.state}</span>`;
+  floatEl.style.pointerEvents='none';
+  document.body.appendChild(floatEl);
+  cardEl.style.opacity='0.3';
+
+  function move(ev){
+    ev.preventDefault();
+    const t=ev.touches[0];
+    floatEl.style.left=(t.clientX-22)+'px';
+    floatEl.style.top=(t.clientY-26)+'px';
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    document.getElementById('trash').classList.toggle('drag-over',
+      t.clientX>=tr.left&&t.clientX<=tr.right&&t.clientY>=tr.top&&t.clientY<=tr.bottom);
+  }
+  function up(ev){
+    document.removeEventListener('touchmove',move);
+    document.removeEventListener('touchend',up);
+    floatEl.remove(); cardEl.style.opacity='';
+    document.getElementById('trash').classList.remove('drag-over');
+    const t=ev.changedTouches[0];
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    const brr=bench.getBoundingClientRect();
+    if(t.clientX>=tr.left&&t.clientX<=tr.right&&t.clientY>=tr.top&&t.clientY<=tr.bottom){
+      trashFx(); removeBenchEl(id);
+    } else {
+      const idx=benchElements.findIndex(el=>el.id===id);
+      if(idx!==-1){
+        benchElements[idx].x=Math.max(0,Math.min(brr.width-50,t.clientX-brr.left-ox));
+        benchElements[idx].y=Math.max(0,Math.min(brr.height-58,t.clientY-brr.top-oy));
+      }
+      renderBench();
+    }
+  }
+  document.addEventListener('touchmove',move,{passive:false});
+  document.addEventListener('touchend',up);
+}
+
+// ==================== 반응 찾기 (정확한 계수비) ====================
+function findReaction(){
+  const cur={};
+  benchElements.forEach(el=>{cur[el.sym]=(cur[el.sym]||0)+1;});
+  for(const rxn of REACTIONS){
+    const req={};
+    rxn.reactants.forEach(r=>{req[r.sym]=r.count;});
+    const ck=Object.keys(cur).sort().join(',');
+    const rk=Object.keys(req).sort().join(',');
+    if(ck!==rk)continue;
+    let ok=true;
+    for(const k in req){if(cur[k]!==req[k]){ok=false;break;}}
+    if(ok)return rxn;
+  }
+  return null;
+}
+
+// ==================== 반응 버튼 ====================
+document.getElementById('react-btn').addEventListener('click',()=>{
+  if(isAnimating)return;
+  if(benchElements.length===0){
+    showMsg('⚠️ 원소가 없습니다!','작업대에 원소를 먼저 올려주세요.',false);return;
+  }
+  const rxn=findReaction();
+  if(rxn){startReactionAnim(rxn);}
+  else{
+    noRxnFx();
+    const cur={};
+    benchElements.forEach(el=>{cur[el.sym]=(cur[el.sym]||0)+1;});
+    const str=Object.entries(cur).map(([k,v])=>`${k}×${v}`).join(' + ');
+    showMsg('❌ 반응 없음 / 계수비 불일치',`현재: ${str}\n\n계수비가 맞지 않거나 미등록 반응입니다.\n힌트 패널을 참고하세요!`,false);
+  }
+});
+
+// ==================== 애니메이션 ====================
+function startReactionAnim(rxn){
+  isAnimating=true;
+  document.getElementById('react-btn').disabled=true;
+  const bench=document.getElementById('workbench');
+  const br=bench.getBoundingClientRect();
+  const cx=br.left+br.width/2, cy=br.top+br.height/2;
+  const cards=bench.querySelectorAll('.bench-element');
+  const infos=[];
+  cards.forEach((card,i)=>{
+    const r=card.getBoundingClientRect();
+    infos.push({el:benchElements[i]||benchElements[0],rect:r,mx:r.left+r.width/2,my:r.top+r.height/2});
+  });
+  const clones=infos.map(info=>{
+    const cl=document.createElement('div');
+    cl.className='converge-el';
+    cl.style.cssText=`left:${info.rect.left}px;top:${info.rect.top}px;
+      width:${info.rect.width}px;height:${info.rect.height}px;
+      background:${getGrad(info.el.type)};
+      color:${isDark(info.el.type)?'#333':'#fff'};`;
+    cl.textContent=info.el.sym;
+    document.body.appendChild(cl); return cl;
+  });
+  cards.forEach(c=>{c.style.opacity='0';});
+  clones.forEach((cl,i)=>{
+    setTimeout(()=>{cl.style.animation='shake 0.4s ease';},i*50);
+  });
+  spawnOrbit(cx,cy,rxn.color);
+  infos.forEach(info=>spawnSpark(info.mx,info.my,cx,cy,rxn.color));
+  setTimeout(()=>{
+    clones.forEach((cl,i)=>animConverge(cl,infos[i].rect.left,infos[i].rect.top,cx-23,cy-27,500));
+  },500);
+  setTimeout(()=>{
+    clones.forEach(c=>c.remove());
+    triggerExplosion(cx,cy,rxn);
+    spawnParticles(cx,cy,rxn.color,rxn.bondType);
+    createFlash(rxn.color);
+    spawnSmoke(cx,cy,bench,br);
+    benchShake();
+  },1100);
+  setTimeout(()=>{
+    benchElements=[];renderBench();
+    spawnProduct(bench,rxn);
+    showResult(rxn);
+    document.getElementById('react-btn').disabled=false;
+    isAnimating=false;
+  },1700);
+}
+
+function animConverge(el,fx,fy,tx,ty,dur){
+  const st=performance.now();
+  (function step(now){
+    const t=Math.min((now-st)/dur,1),e=1-Math.pow(1-t,3);
+    el.style.left=(fx+(tx-fx)*e)+'px'; el.style.top=(fy+(ty-fy)*e)+'px';
+    el.style.transform=`scale(${1-t*0.4}) rotate(${t*360}deg)`;
+    el.style.opacity=String(1-t*0.3);
+    if(t<1)requestAnimationFrame(step);
+  })(performance.now());
+}
+function triggerExplosion(cx,cy,rxn){
+  const bench=document.getElementById('workbench');
+  const br=bench.getBoundingClientRect();
+  const lx=cx-br.left, ly=cy-br.top;
+  [rxn.color,'#fff','#ffd700',rxn.color,'#fff'].forEach((color,i)=>{
+    setTimeout(()=>{
+      const ring=document.createElement('div');
+      ring.className='explosion-ring';
+      ring.style.cssText=`left:${lx}px;top:${ly}px;width:20px;height:20px;border-color:${color};box-shadow:0 0 10px ${color};`;
+      bench.appendChild(ring);
+      const st=performance.now(),dur=700+i*100;
+      (function step(now){
+        const t=Math.min((now-st)/dur,1),s=20+t*(200+i*50);
+        ring.style.width=s+'px';ring.style.height=s+'px';
+        ring.style.opacity=String(1-t);ring.style.borderWidth=(4-t*3)+'px';
+        if(t<1)requestAnimationFrame(step);else ring.remove();
+      })(performance.now());
+    },i*80);
+  });
+}
+function spawnParticles(cx,cy,baseColor,bondType){
+  const bench=document.getElementById('workbench');
+  const br=bench.getBoundingClientRect();
+  const lx=cx-br.left,ly=cy-br.top;
+  const palette=bondType==='ionic'?[baseColor,'#ffd700','#fff','#fdcb6e','#ff7675']
+    :bondType==='metallic'?[baseColor,'#74b9ff','#dfe6e9','#b2bec3','#ffd700']
+    :[baseColor,'#55efc4','#fff','#74b9ff','#dfe6e9'];
+  for(let i=0;i<50;i++){
+    const p=document.createElement('div');
+    const sz=rand(4,14),color=palette[randInt(0,palette.length)];
+    const ang=rand(0,Math.PI*2),spd=rand(40,170),vx=Math.cos(ang)*spd,vy=Math.sin(ang)*spd,dur=rand(600,1300);
+    p.style.cssText=`position:absolute;width:${sz}px;height:${sz}px;background:${color};
+      left:${lx}px;top:${ly}px;border-radius:${Math.random()>0.5?'50%':'2px'};
+      box-shadow:0 0 ${sz}px ${color};pointer-events:none;z-index:20;`;
+    bench.appendChild(p);
+    const st=performance.now();
+    (function anim(now){
+      const t=Math.min((now-st)/dur,1);
+      p.style.left=(lx+vx*t)+'px';p.style.top=(ly+vy*t+70*t*t)+'px';
+      p.style.opacity=String(1-t*t);p.style.transform=`scale(${1-t}) rotate(${t*360}deg)`;
+      if(t<1)requestAnimationFrame(anim);else p.remove();
+    })(performance.now());
+  }
+}
+function spawnOrbit(cx,cy,color){
+  for(let i=0;i<8;i++){
+    const el=document.createElement('div');
+    el.style.cssText=`position:fixed;width:8px;height:8px;border-radius:50%;
+      left:${cx}px;top:${cy}px;background:${color};pointer-events:none;z-index:8500;
+      box-shadow:0 0 8px ${color},0 0 16px ${color};`;
+    document.body.appendChild(el);
+    const r=rand(40,90),spd=rand(1.5,3),off=(i/8)*Math.PI*2,st=performance.now(),dur=900;
+    (function anim(now){
+      const t=(now-st)/1000,pr=Math.min((now-st)/dur,1),ang=t*spd+off;
+      el.style.left=(cx+Math.cos(ang)*r)+'px';el.style.top=(cy+Math.sin(ang)*r*0.4)+'px';
+      el.style.opacity=String(1-pr);
+      if(pr<1)requestAnimationFrame(anim);else el.remove();
+    })(performance.now());
+  }
+}
+function spawnSpark(fx,fy,tx,ty,color){
+  const dx=tx-fx,dy=ty-fy,len=Math.sqrt(dx*dx+dy*dy),ang=Math.atan2(dy,dx)*180/Math.PI;
+  const s=document.createElement('div');
+  s.style.cssText=`position:fixed;left:${fx}px;top:${fy}px;height:2px;width:0;
+    background:linear-gradient(to right,${color},#fff,transparent);
+    transform:rotate(${ang}deg);transform-origin:left center;
+    box-shadow:0 0 4px ${color};z-index:8300;pointer-events:none;border-radius:2px;`;
+  document.body.appendChild(s);
+  const st=performance.now();
+  (function anim(now){
+    const t=now-st;
+    if(t<400){s.style.width=(len*(t/400))+'px';s.style.opacity='1';requestAnimationFrame(anim);}
+    else if(t<600){s.style.opacity=String(1-(t-400)/200);requestAnimationFrame(anim);}
+    else s.remove();
+  })(performance.now());
+}
+function createFlash(color){
+  const f=document.createElement('div');
+  f.className='flash-overlay';
+  f.style.background=`radial-gradient(circle at center,${color}88 0%,transparent 70%)`;
+  document.body.appendChild(f);
+  const st=performance.now();
+  (function anim(now){
+    const t=Math.min((now-st)/400,1);
+    f.style.opacity=String(t<0.3?t/0.3*0.7:(1-(t-0.3)/0.7)*0.7);
+    if(t<1)requestAnimationFrame(anim);else f.remove();
+  })(performance.now());
+}
+function spawnSmoke(cx,cy,bench,br){
+  const lx=cx-br.left,ly=cy-br.top;
+  for(let i=0;i<8;i++){
+    setTimeout(()=>{
+      const s=document.createElement('div');
+      s.style.cssText=`position:absolute;border-radius:50%;
+        width:${rand(20,50)}px;height:${rand(20,50)}px;
+        background:radial-gradient(circle,rgba(200,200,200,0.3) 0%,transparent 70%);
+        left:${lx+rand(-30,30)}px;top:${ly+rand(-20,10)}px;
+        pointer-events:none;z-index:6;`;
+      bench.appendChild(s);
+      const st=performance.now(),dur=rand(800,1400),dx=rand(-20,20);
+      (function anim(now){
+        const t=Math.min((now-st)/dur,1);
+        s.style.transform=`translateY(${-t*60}px) translateX(${dx*t}px) scale(${1+t*2})`;
+        s.style.opacity=String(0.5*(1-t));
+        if(t<1)requestAnimationFrame(anim);else s.remove();
+      })(performance.now());
+    },i*80);
+  }
+}
+function benchShake(){
+  const bench=document.getElementById('workbench');
+  bench.style.animation='none';
+  setTimeout(()=>{bench.style.animation='shake 0.5s ease';},10);
+  setTimeout(()=>{bench.style.animation='';},560);
+}
+function spawnProduct(bench,rxn){
+  const card=document.createElement('div');
+  card.className='product-card';
+  card.style.left=(bench.offsetWidth/2-40)+'px';
+  card.style.top=(bench.offsetHeight/2-30)+'px';
+  card.style.borderColor=rxn.color;
+  card.style.boxShadow=`0 5px 25px ${rxn.color}80`;
+  card.innerHTML=`<div class="p-formula">${rxn.product}</div><div class="p-name">${rxn.name}</div>`;
+  card.addEventListener('mousedown',e=>startProductMove(e,card,bench));
+  card.addEventListener('touchstart',e=>startProductMoveTouch(e,card,bench),{passive:false});
+  bench.appendChild(card);
+  setTimeout(()=>spawnMiniP(bench,bench.offsetWidth/2,bench.offsetHeight/2,rxn.color),200);
+}
+function spawnMiniP(bench,lx,ly,color){
+  for(let i=0;i<20;i++){
+    const p=document.createElement('div');
+    const ang=rand(0,Math.PI*2),spd=rand(20,70),dur=rand(400,700);
+    const vx=Math.cos(ang)*spd,vy=Math.sin(ang)*spd;
+    p.style.cssText=`position:absolute;border-radius:50%;
+      width:${rand(3,8)}px;height:${rand(3,8)}px;
+      background:${color};left:${lx}px;top:${ly}px;
+      pointer-events:none;z-index:11;box-shadow:0 0 6px ${color};`;
+    bench.appendChild(p);
+    const st=performance.now();
+    (function anim(now){
+      const t=Math.min((now-st)/dur,1);
+      p.style.left=(lx+vx*t)+'px';p.style.top=(ly+vy*t+30*t*t)+'px';
+      p.style.opacity=String(1-t);
+      if(t<1)requestAnimationFrame(anim);else p.remove();
+    })(performance.now());
+  }
+}
+
+// 생성물 이동 드래그
+function startProductMove(e,card,bench){
+  e.preventDefault();
+  const br=bench.getBoundingClientRect();
+  const floatEl=document.createElement('div');
+  floatEl.className='floating-element transition';
+  floatEl.style.left=(e.clientX-35)+'px'; floatEl.style.top=(e.clientY-25)+'px';
+  floatEl.innerHTML=card.innerHTML; floatEl.style.pointerEvents='none';
+  document.body.appendChild(floatEl);
+  card.style.opacity='0.3';
+  function move(ev){
+    floatEl.style.left=(ev.clientX-35)+'px'; floatEl.style.top=(ev.clientY-25)+'px';
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    document.getElementById('trash').classList.toggle('drag-over',
+      ev.clientX>=tr.left&&ev.clientX<=tr.right&&ev.clientY>=tr.top&&ev.clientY<=tr.bottom);
+  }
+  function up(ev){
+    document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
+    floatEl.remove(); card.style.opacity='';
+    document.getElementById('trash').classList.remove('drag-over');
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    const brr=bench.getBoundingClientRect();
+    if(ev.clientX>=tr.left&&ev.clientX<=tr.right&&ev.clientY>=tr.top&&ev.clientY<=tr.bottom){
+      trashFx(); card.remove();
+      if(!bench.querySelector('.bench-element,.product-card'))
+        document.getElementById('bench-msg').style.display='block';
+    } else {
+      card.style.left=Math.max(0,Math.min(brr.width-80,ev.clientX-brr.left-35))+'px';
+      card.style.top=Math.max(0,Math.min(brr.height-60,ev.clientY-brr.top-25))+'px';
+    }
+  }
+  document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+}
+function startProductMoveTouch(e,card,bench){
+  e.preventDefault();
+  const t0=e.touches[0];
+  const floatEl=document.createElement('div');
+  floatEl.className='floating-element transition';
+  floatEl.style.left=(t0.clientX-35)+'px'; floatEl.style.top=(t0.clientY-25)+'px';
+  floatEl.innerHTML=card.innerHTML; floatEl.style.pointerEvents='none';
+  document.body.appendChild(floatEl); card.style.opacity='0.3';
+  function move(ev){
+    ev.preventDefault(); const t=ev.touches[0];
+    floatEl.style.left=(t.clientX-35)+'px'; floatEl.style.top=(t.clientY-25)+'px';
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    document.getElementById('trash').classList.toggle('drag-over',
+      t.clientX>=tr.left&&t.clientX<=tr.right&&t.clientY>=tr.top&&t.clientY<=tr.bottom);
+  }
+  function up(ev){
+    document.removeEventListener('touchmove',move); document.removeEventListener('touchend',up);
+    floatEl.remove(); card.style.opacity='';
+    document.getElementById('trash').classList.remove('drag-over');
+    const t=ev.changedTouches[0];
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    const brr=bench.getBoundingClientRect();
+    if(t.clientX>=tr.left&&t.clientX<=tr.right&&t.clientY>=tr.top&&t.clientY<=tr.bottom){
+      trashFx(); card.remove();
+    } else {
+      card.style.left=Math.max(0,Math.min(brr.width-80,t.clientX-brr.left-35))+'px';
+      card.style.top=Math.max(0,Math.min(brr.height-60,t.clientY-brr.top-25))+'px';
+    }
+  }
+  document.addEventListener('touchmove',move,{passive:false}); document.addEventListener('touchend',up);
+}
+
+function trashFx(){
+  const t=document.getElementById('trash');
+  t.style.transform='scale(1.3) rotate(15deg)';
+  setTimeout(()=>{t.style.transform='';},300);
+}
+function noRxnFx(){
+  const b=document.getElementById('workbench');
+  b.style.borderColor='#ff4757';b.style.boxShadow='0 0 20px rgba(255,71,87,0.5)';
+  b.style.animation='none';setTimeout(()=>{b.style.animation='shake 0.5s ease';},10);
+  setTimeout(()=>{b.style.borderColor='';b.style.boxShadow='';b.style.animation='';},600);
+}
+
+// ==================== 결과 표시 ====================
+function showResult(rxn){
+  const area=document.getElementById('result-area');
+  area.style.display='grid';
+  document.getElementById('result-title').textContent=`✅ ${rxn.type} — ${rxn.product}`;
+  document.getElementById('result-desc').textContent=`${rxn.equation}\n\n${rxn.desc}`;
+  const badge=document.getElementById('bond-badge');
+  const labels={covalent:'⚛️ 공유 결합 (Covalent Bond)',ionic:'🔶 이온 결합 (Ionic Bond)',metallic:'🔷 금속 결합 (Metallic Bond)'};
+  const cls={covalent:'badge-covalent',ionic:'badge-ionic',metallic:'badge-metallic'};
+  badge.textContent=labels[rxn.bondType]||rxn.bondType;
+  badge.className='bond-badge '+(cls[rxn.bondType]||'badge-none');
+  document.getElementById('struct-title').textContent='🔬 결합 구조 — '+rxn.product;
+  drawStructure(rxn);
+}
+function showMsg(title,desc,ok){
+  const area=document.getElementById('result-area');
+  area.style.display='grid';
+  document.getElementById('result-title').textContent=title;
+  document.getElementById('result-desc').textContent=desc;
+  document.getElementById('bond-badge').textContent='';
+  document.getElementById('result-panel').style.borderLeftColor=ok?'#00b894':'#e17055';
+  document.getElementById('struct-title').textContent='🔬 결합 구조';
+  const ctx=document.getElementById('structure-canvas').getContext('2d');
+  ctx.clearRect(0,0,320,200);
+}
+
+// ==================== Canvas 구조 그리기 ====================
+function drawStructure(rxn){
+  const canvas=document.getElementById('structure-canvas');
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // 어두운 배경
+  ctx.fillStyle='#0a0a1e';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  const fn=DRAW_FNS[rxn.draw];
+  if(fn)fn(ctx,canvas.width,canvas.height);
+  else drawGenericFn(ctx,canvas.width,canvas.height,rxn);
+}
+
+// ── Canvas 헬퍼 ──
+function shade(hex,amt){
+  let c=hex.replace('#','');
+  if(c.length===3)c=c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+  let r=Math.max(0,Math.min(255,parseInt(c.slice(0,2),16)+amt));
+  let g=Math.max(0,Math.min(255,parseInt(c.slice(2,4),16)+amt));
+  let b=Math.max(0,Math.min(255,parseInt(c.slice(4,6),16)+amt));
+  return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+
+// 원자 그리기 (밝고 선명하게)
+function atom(ctx,x,y,r,color,lbl,textColor){
+  textColor=textColor||'#ffffff';
+  ctx.save();
+  // 글로우
+  ctx.shadowColor=color; ctx.shadowBlur=18;
+  const g=ctx.createRadialGradient(x-r*0.3,y-r*0.3,r*0.05,x,y,r);
+  g.addColorStop(0,'#ffffff');
+  g.addColorStop(0.25,color);
+  g.addColorStop(1,shade(color,-50));
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fillStyle=g; ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.lineWidth=2;
+  ctx.stroke(); ctx.restore();
+  // 텍스트 (항상 굵고 크게)
+  ctx.save();
+  ctx.font=`bold ${Math.max(11,Math.floor(r*0.85))}px Arial`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='#000'; ctx.fillText(lbl,x+1,y+1); // 그림자
+  ctx.fillStyle=textColor; ctx.fillText(lbl,x,y);
+  ctx.restore();
+}
+
+// 이온 그리기
+function ion(ctx,x,y,r,color,lbl,charge,textColor){
+  atom(ctx,x,y,r,color,lbl,textColor||'#fff');
+  ctx.save();
+  ctx.font='bold 12px Arial'; ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.fillStyle='#ffd700';
+  ctx.strokeStyle='#000'; ctx.lineWidth=2;
+  ctx.strokeText(charge,x+r*0.5,y-r*0.9);
+  ctx.fillText(charge,x+r*0.5,y-r*0.9);
+  ctx.restore();
+}
+
+// 결합선
+function bond(ctx,x1,y1,x2,y2,order,color){
+  order=order||1; color=color||'#ffffff';
+  const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+  const nx=-dy/len,ny=dx/len;
+  const offsets=order===1?[0]:order===2?[-3.5,3.5]:[-5,0,5];
+  ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=2.5;
+  ctx.shadowColor=color; ctx.shadowBlur=6;
+  offsets.forEach(off=>{
+    ctx.beginPath();
+    ctx.moveTo(x1+nx*off,y1+ny*off);
+    ctx.lineTo(x2+nx*off,y2+ny*off);
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+
+// 비공유 전자쌍
+function lonePair(ctx,x,y,angle,color){
+  color=color||'#00ffff';
+  ctx.save();
+  ctx.shadowColor=color; ctx.shadowBlur=8;
+  ctx.fillStyle=color;
+  const dist=16;
+  [-5,5].forEach(off=>{
+    const ex=x+Math.cos(angle)*dist+Math.cos(angle+Math.PI/2)*off;
+    const ey=y+Math.sin(angle)*dist+Math.sin(angle+Math.PI/2)*off;
+    ctx.beginPath(); ctx.arc(ex,ey,3,0,Math.PI*2); ctx.fill();
+  });
+  ctx.restore();
+}
+
+// 이온 결합 배경
+function ionicBg(ctx,w,h,c1,c2){
+  ctx.save(); ctx.globalAlpha=0.12;
+  for(let i=0;i<6;i++)for(let j=0;j<4;j++){
+    ctx.beginPath();
+    ctx.arc(25+i*50,25+j*45,10,0,Math.PI*2);
+    ctx.fillStyle=(i+j)%2===0?c1:c2; ctx.fill();
+  }
+  ctx.restore();
+  // 격자선
+  ctx.save(); ctx.globalAlpha=0.06; ctx.strokeStyle='#fff'; ctx.lineWidth=1;
+  for(let i=0;i<6;i++)for(let j=0;j<4;j++){
+    if(i<5){ctx.beginPath();ctx.moveTo(25+i*50,25+j*45);ctx.lineTo(75+i*50,25+j*45);ctx.stroke();}
+    if(j<3){ctx.beginPath();ctx.moveTo(25+i*50,25+j*45);ctx.lineTo(25+i*50,70+j*45);ctx.stroke();}
+  }
+  ctx.restore();
+}
+
+// 금속 결합 배경
+function metallicBg(ctx,w,h,color){
+  ctx.save(); ctx.globalAlpha=0.18;
+  const g=ctx.createLinearGradient(0,0,w,h);
+  g.addColorStop(0,color); g.addColorStop(1,shade(color,-60));
+  ctx.fillStyle=g; ctx.fillRect(10,10,w-20,h-20);
+  ctx.restore();
+  // 자유 전자 점들
+  for(let i=0;i<16;i++){
+    const ex=rand(15,w-15),ey=rand(15,h-15);
+    ctx.save(); ctx.shadowColor='#fff'; ctx.shadowBlur=6;
+    ctx.fillStyle='rgba(255,255,255,0.75)';
+    ctx.beginPath(); ctx.arc(ex,ey,2.5,0,Math.PI*2); ctx.fill();
+    ctx.font='9px Arial'; ctx.fillStyle='rgba(200,220,255,0.9)';
+    ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText('e⁻',ex+4,ey); ctx.restore();
+  }
+}
+
+// 라벨
+function label(ctx,text,x,y,size,color){
+  ctx.save();
+  ctx.font=`${size||11}px Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='#000';
+  ctx.fillText(text,x+1,y+1);
+  ctx.fillStyle=color||'rgba(180,220,255,0.9)'; ctx.fillText(text,x,y);
+  ctx.restore();
+}
+
+// ── 개별 그리기 ──
+function drawH2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,1,'#e0e0ff');
+  atom(ctx,cx-50,cy,22,'#aaaacc','H');
+  atom(ctx,cx+50,cy,22,'#aaaacc','H');
+  lonePair(ctx,cx-50,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  label(ctx,'비극성 공유 결합 | H-H 단일 결합',cx,h-18,11);
+}
+function drawO2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,2,'#ff6666');
+  atom(ctx,cx-50,cy,24,'#ff3333','O');
+  atom(ctx,cx+50,cy,24,'#ff3333','O');
+  lonePair(ctx,cx-50,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx-50,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  lonePair(ctx,cx+50,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'비극성 공유 결합 | O=O 이중 결합',cx,h-18,11);
+}
+function drawN2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,3,'#aa88ff');
+  atom(ctx,cx-50,cy,24,'#6644cc','N');
+  atom(ctx,cx+50,cy,24,'#6644cc','N');
+  lonePair(ctx,cx-50,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  label(ctx,'비극성 공유 결합 | N≡N 삼중 결합',cx,h-18,11);
+}
+function drawCl2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,1,'#00ffcc');
+  atom(ctx,cx-50,cy,24,'#00aaaa','Cl');
+  atom(ctx,cx+50,cy,24,'#00aaaa','Cl');
+  lonePair(ctx,cx-50,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx-50,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx-50,cy,-Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  lonePair(ctx,cx+50,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+50,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'비극성 공유 결합 | Cl-Cl 단일 결합',cx,h-18,11);
+}
+function drawF2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,1,'#ff88cc');
+  atom(ctx,cx-50,cy,22,'#cc4488','F');
+  atom(ctx,cx+50,cy,22,'#cc4488','F');
+  lonePair(ctx,cx-50,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx-50,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx-50,cy,-Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  lonePair(ctx,cx+50,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+50,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'비극성 공유 결합 | F-F 단일 결합',cx,h-18,11);
+}
+function drawBr2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-55,cy,cx+55,cy,1,'#ff8855');
+  atom(ctx,cx-55,cy,26,'#cc4422','Br');
+  atom(ctx,cx+55,cy,26,'#cc4422','Br');
+  lonePair(ctx,cx-55,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx-55,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx-55,cy,-Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+55,cy,0,'#00ffff');
+  lonePair(ctx,cx+55,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+55,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'비극성 공유 결합 | Br-Br 단일 결합',cx,h-18,11);
+}
+function drawI2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-55,cy,cx+55,cy,1,'#9966ff');
+  atom(ctx,cx-55,cy,26,'#6633cc','I');
+  atom(ctx,cx+55,cy,26,'#6633cc','I');
+  lonePair(ctx,cx-55,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx-55,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx-55,cy,-Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+55,cy,0,'#00ffff');
+  lonePair(ctx,cx+55,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+55,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'비극성 공유 결합 | I-I 단일 결합',cx,h-18,11);
+}
+function drawMetal(ctx,w,h){
+  metallicBg(ctx,w,h,'#74b9ff');
+  const pos=[[70,55],[160,55],[250,55],[70,130],[160,130],[250,130]];
+  pos.forEach(([x,y])=>atom(ctx,x,y,24,'#3399ff','M⁺'));
+  label(ctx,'금속 결합 | 자유 전자(e⁻)의 바다 모형',w/2,h-12,11);
+}
+function drawH2O(ctx,w,h){
+  const cx=w/2,cy=h/2-10;
+  bond(ctx,cx,cy,cx-58,cy+42,1,'#88ccff');
+  bond(ctx,cx,cy,cx+58,cy+42,1,'#88ccff');
+  atom(ctx,cx,cy,26,'#ff4444','O');
+  atom(ctx,cx-58,cy+42,18,'#aaaacc','H');
+  atom(ctx,cx+58,cy+42,18,'#aaaacc','H');
+  lonePair(ctx,cx,cy,-Math.PI*0.75,'#00ffff');
+  lonePair(ctx,cx,cy,-Math.PI*0.25,'#00ffff');
+  // 결합각
+  ctx.save(); ctx.strokeStyle='rgba(255,255,100,0.7)'; ctx.lineWidth=1.5;
+  ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.arc(cx,cy,38,-Math.PI*0.75,-Math.PI*0.25,false);
+  ctx.stroke(); ctx.restore();
+  label(ctx,'104.5°',cx,cy+42,10,'#ffff88');
+  label(ctx,'굽은형(V형) | 극성 공유 결합 | 비공유전자쌍 2쌍',cx,h-12,10);
+}
+function drawH2O2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-95,cy,cx-45,cy,1,'#88ccff');
+  bond(ctx,cx-45,cy,cx+45,cy,1,'#88ccff');
+  bond(ctx,cx+45,cy,cx+95,cy,1,'#88ccff');
+  atom(ctx,cx-95,cy,16,'#aaaacc','H');
+  atom(ctx,cx-45,cy,24,'#ff4444','O');
+  atom(ctx,cx+45,cy,24,'#ff4444','O');
+  atom(ctx,cx+95,cy,16,'#aaaacc','H');
+  lonePair(ctx,cx-45,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx-45,cy,-Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+45,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+45,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'H-O-O-H | 극성 공유 결합 | 소독약 성분',cx,h-12,10);
+}
+function drawCO2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-70,cy,cx,cy,2,'#ff88aa');
+  bond(ctx,cx,cy,cx+70,cy,2,'#ff88aa');
+  atom(ctx,cx,cy,26,'#888888','C');
+  atom(ctx,cx-70,cy,24,'#ff4444','O');
+  atom(ctx,cx+70,cy,24,'#ff4444','O');
+  lonePair(ctx,cx-70,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx-70,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+70,cy,0,'#00ffff');
+  lonePair(ctx,cx+70,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'선형(180°) | O=C=O 이중결합 × 2 | 비극성',cx,h-12,10);
+}
+function drawCO(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-48,cy,cx+48,cy,3,'#ff88aa');
+  atom(ctx,cx-48,cy,26,'#888888','C');
+  atom(ctx,cx+48,cy,26,'#ff4444','O');
+  lonePair(ctx,cx-48,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx+48,cy,0,'#00ffff');
+  label(ctx,'선형 | C≡O 삼중결합 | 독성 기체',cx,h-12,10);
+}
+function drawNaCl(ctx,w,h){
+  ionicBg(ctx,w,h,'#e17055','#00cec9');
+  const cx=w/2,cy=h/2-8;
+  ctx.save(); ctx.setLineDash([6,4]);
+  ctx.strokeStyle='rgba(255,215,0,0.8)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-36,cy); ctx.lineTo(cx+36,cy); ctx.stroke(); ctx.restore();
+  ion(ctx,cx-55,cy,30,'#e17055','Na','Na⁺','#fff');
+  ion(ctx,cx+55,cy,30,'#00aacc','Cl','Cl⁻','#fff');
+  // 전자 이동 화살표
+  ctx.save(); ctx.strokeStyle='#ffd700'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-20,cy-45); ctx.lineTo(cx+20,cy-45); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx+15,cy-50); ctx.lineTo(cx+20,cy-45); ctx.lineTo(cx+15,cy-40); ctx.stroke();
+  ctx.fillStyle='#ffd700'; ctx.font='10px Arial'; ctx.textAlign='center';
+  ctx.fillText('e⁻ 이동',cx,cy-58); ctx.restore();
+  label(ctx,'이온 결합 | Na⁺ + Cl⁻ | 전자 1개 이동',cx,h-12,11);
+}
+function drawHCl(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,1,'#00ffcc');
+  atom(ctx,cx-50,cy,22,'#aaaacc','H');
+  atom(ctx,cx+50,cy,28,'#00aaaa','Cl');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  lonePair(ctx,cx+50,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+50,cy,-Math.PI/2,'#00ffff');
+  // 쌍극자
+  ctx.save(); ctx.strokeStyle='#ffd700'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-25,cy-50); ctx.lineTo(cx+30,cy-50); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx-25,cy-55); ctx.lineTo(cx-20,cy-50); ctx.lineTo(cx-25,cy-45); ctx.stroke();
+  ctx.fillStyle='#ffd700'; ctx.font='11px Arial'; ctx.textAlign='center';
+  ctx.fillText('δ+',cx-42,cy-50); ctx.fillText('δ-',cx+48,cy-50); ctx.restore();
+  label(ctx,'극성 공유 결합 | H-Cl | 비공유전자쌍 3쌍',cx,h-12,10);
+}
+function drawHF(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,1,'#ff88cc');
+  atom(ctx,cx-50,cy,22,'#aaaacc','H');
+  atom(ctx,cx+50,cy,26,'#cc4488','F');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  lonePair(ctx,cx+50,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+50,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'극성 공유 결합 | H-F | 전기음성도 F=4.0',cx,h-12,10);
+}
+function drawMgO(ctx,w,h){
+  ionicBg(ctx,w,h,'#fdcb6e','#ff4444');
+  const cx=w/2,cy=h/2-8;
+  ctx.save(); ctx.setLineDash([6,4]);
+  ctx.strokeStyle='rgba(255,215,0,0.8)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-36,cy); ctx.lineTo(cx+36,cy); ctx.stroke(); ctx.restore();
+  ion(ctx,cx-58,cy,30,'#fdcb6e','Mg','Mg²⁺','#333');
+  ion(ctx,cx+58,cy,30,'#ff4444','O','O²⁻','#fff');
+  // 전자 이동 2개
+  ctx.save(); ctx.strokeStyle='#ffd700'; ctx.lineWidth=1.5;
+  [-8,8].forEach(dy=>{
+    ctx.beginPath(); ctx.moveTo(cx-18,cy-45+dy); ctx.lineTo(cx+18,cy-45+dy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+13,cy-50+dy); ctx.lineTo(cx+18,cy-45+dy); ctx.lineTo(cx+13,cy-40+dy); ctx.stroke();
+  });
+  ctx.fillStyle='#ffd700'; ctx.font='10px Arial'; ctx.textAlign='center';
+  ctx.fillText('e⁻ × 2 이동',cx,cy-62); ctx.restore();
+  label(ctx,'이온 결합 | Mg²⁺ + O²⁻ | 전자 2개 이동',cx,h-12,10);
+}
+function drawCaO(ctx,w,h){
+  ionicBg(ctx,w,h,'#fdcb6e','#ff4444');
+  const cx=w/2,cy=h/2-8;
+  ctx.save(); ctx.setLineDash([6,4]);
+  ctx.strokeStyle='rgba(255,215,0,0.8)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-36,cy); ctx.lineTo(cx+36,cy); ctx.stroke(); ctx.restore();
+  ion(ctx,cx-58,cy,30,'#fdcb6e','Ca','Ca²⁺','#333');
+  ion(ctx,cx+58,cy,30,'#ff4444','O','O²⁻','#fff');
+  label(ctx,'이온 결합 | Ca²⁺ + O²⁻ | 생석회(시멘트 원료)',cx,h-12,10);
+}
+function drawH2S(ctx,w,h){
+  const cx=w/2,cy=h/2-12;
+  bond(ctx,cx,cy,cx-60,cy+46,1,'#ffeeaa');
+  bond(ctx,cx,cy,cx+60,cy+46,1,'#ffeeaa');
+  atom(ctx,cx,cy,28,'#ccbb00','S','#fff');
+  atom(ctx,cx-60,cy+46,18,'#aaaacc','H');
+  atom(ctx,cx+60,cy+46,18,'#aaaacc','H');
+  lonePair(ctx,cx,cy,-Math.PI*0.8,'#00ffff');
+  lonePair(ctx,cx,cy,-Math.PI*0.2,'#00ffff');
+  label(ctx,'굽은형 | H-S-H | 결합각≈92° | 극성 공유',cx,h-12,10);
+}
+function drawSO2(ctx,w,h){
+  const cx=w/2,cy=h/2-12;
+  bond(ctx,cx,cy,cx-62,cy+46,2,'#ff88aa');
+  bond(ctx,cx,cy,cx+62,cy+46,2,'#ff88aa');
+  atom(ctx,cx,cy,28,'#ccbb00','S','#fff');
+  atom(ctx,cx-62,cy+46,22,'#ff4444','O');
+  atom(ctx,cx+62,cy+46,22,'#ff4444','O');
+  lonePair(ctx,cx,cy,-Math.PI/2,'#00ffff');
+  lonePair(ctx,cx-62,cy+46,Math.PI,'#00ffff');
+  lonePair(ctx,cx+62,cy+46,0,'#00ffff');
+  label(ctx,'굽은형 | 결합각≈119° | 극성 공유 | 산성비 원인',cx,h-12,10);
+}
+function drawNO(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,2,'#aa88ff');
+  atom(ctx,cx-50,cy,24,'#6644cc','N');
+  atom(ctx,cx+50,cy,24,'#ff4444','O');
+  lonePair(ctx,cx-50,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  // 홀전자
+  ctx.save(); ctx.fillStyle='#ffff00'; ctx.shadowColor='#ffff00'; ctx.shadowBlur=8;
+  ctx.beginPath(); ctx.arc(cx-50,cy-36,4,0,Math.PI*2); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.fillStyle='#ffff88'; ctx.font='10px Arial'; ctx.textAlign='center';
+  ctx.fillText('홀전자',cx-50,cy-50); ctx.restore();
+  label(ctx,'선형 | N=O 이중결합 | 홀전자 1개',cx,h-12,10);
+}
+function drawNa2O(ctx,w,h){
+  ionicBg(ctx,w,h,'#e17055','#ff4444');
+  const cx=w/2,cy=h/2;
+  ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle='rgba(255,215,0,0.7)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-62,cy); ctx.lineTo(cx,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+62,cy); ctx.stroke(); ctx.restore();
+  ion(ctx,cx-80,cy,26,'#e17055','Na','Na⁺','#fff');
+  ion(ctx,cx,cy,26,'#ff4444','O','O²⁻','#fff');
+  ion(ctx,cx+80,cy,26,'#e17055','Na','Na⁺','#fff');
+  label(ctx,'이온 결합 | Na⁺-O²⁻-Na⁺ | 강염기 NaOH 전구체',cx,h-12,10);
+}
+function drawCaCl2(ctx,w,h){
+  ionicBg(ctx,w,h,'#fdcb6e','#00cec9');
+  const cx=w/2,cy=h/2;
+  ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle='rgba(255,215,0,0.7)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-62,cy); ctx.lineTo(cx,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+62,cy); ctx.stroke(); ctx.restore();
+  ion(ctx,cx-80,cy,24,'#00aacc','Cl','Cl⁻','#fff');
+  ion(ctx,cx,cy,28,'#fdcb6e','Ca','Ca²⁺','#333');
+  ion(ctx,cx+80,cy,24,'#00aacc','Cl','Cl⁻','#fff');
+  label(ctx,'이온 결합 | Cl⁻-Ca²⁺-Cl⁻ | 제습제·제설제',cx,h-12,10);
+}
+function drawFe2O3(ctx,w,h){
+  ionicBg(ctx,w,h,'#e17055','#ff4444');
+  const cx=w/2,cy=h/2-5;
+  [[cx-90,cy],[cx+90,cy]].forEach(([x,y])=>ion(ctx,x,y,24,'#cc5500','Fe','Fe³⁺','#fff'));
+  [[cx-30,cy-40],[cx+30,cy-40],[cx,cy+35]].forEach(([x,y])=>ion(ctx,x,y,20,'#ff4444','O','O²⁻','#fff'));
+  ctx.save(); ctx.setLineDash([4,3]); ctx.strokeStyle='rgba(255,215,0,0.5)'; ctx.lineWidth=1.5;
+  [[cx-90,cy,cx-30,cy-40],[cx-90,cy,cx,cy+35],[cx+90,cy,cx+30,cy-40],[cx+90,cy,cx,cy+35]].forEach(([x1,y1,x2,y2])=>{
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  });
+  ctx.restore();
+  label(ctx,'이온 결합 | Fe³⁺ + O²⁻ | 녹(산화철)',cx,h-8,10);
+}
+function drawAl2O3(ctx,w,h){
+  ionicBg(ctx,w,h,'#b2bec3','#ff4444');
+  const cx=w/2,cy=h/2-5;
+  [[cx-85,cy],[cx+85,cy]].forEach(([x,y])=>ion(ctx,x,y,22,'#99aabb','Al','Al³⁺','#fff'));
+  [[cx-28,cy-38],[cx+28,cy-38],[cx,cy+36]].forEach(([x,y])=>ion(ctx,x,y,20,'#ff4444','O','O²⁻','#fff'));
+  label(ctx,'이온 결합 | Al³⁺ + O²⁻ | 알루미늄 보호막',cx,h-8,10);
+}
+function drawNH3(ctx,w,h){
+  const cx=w/2,cy=h/2-12;
+  bond(ctx,cx,cy,cx-65,cy+50,1,'#aa88ff');
+  bond(ctx,cx,cy,cx+65,cy+50,1,'#aa88ff');
+  bond(ctx,cx,cy,cx,cy+68,1,'#aa88ff');
+  atom(ctx,cx,cy,26,'#6644cc','N','#fff');
+  atom(ctx,cx-65,cy+50,18,'#aaaacc','H');
+  atom(ctx,cx+65,cy+50,18,'#aaaacc','H');
+  atom(ctx,cx,cy+68,18,'#aaaacc','H');
+  lonePair(ctx,cx,cy,-Math.PI/2,'#00ffff');
+  // 결합각
+  ctx.save(); ctx.strokeStyle='rgba(255,255,100,0.6)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.arc(cx,cy,42,Math.PI*0.65,Math.PI*1.35,false); ctx.stroke(); ctx.restore();
+  label(ctx,'107°',cx-70,cy+20,10,'#ffff88');
+  label(ctx,'삼각뿔형 | 극성 공유 결합 | 비공유전자쌍 1쌍',cx,h-12,10);
+}
+function drawCH4(ctx,w,h){
+  const cx=w/2,cy=h/2-5;
+  [[0,-65],[62,38],[-62,38],[0,62]].forEach(([dx,dy])=>{
+    bond(ctx,cx,cy,cx+dx,cy+dy,1,'#00ffaa');
+    atom(ctx,cx+dx,cy+dy,17,'#aaaacc','H');
+  });
+  atom(ctx,cx,cy,28,'#666666','C','#fff');
+  label(ctx,'정사면체형(109.5°) | 비극성 공유 결합 | 천연가스',cx,h-12,10);
+}
+function drawSO3(ctx,w,h){
+  const cx=w/2,cy=h/2-5;
+  const angles=[-Math.PI/2,Math.PI/6,Math.PI*5/6];
+  angles.forEach(a=>{
+    bond(ctx,cx,cy,cx+Math.cos(a)*70,cy+Math.sin(a)*70,2,'#ff88aa');
+    atom(ctx,cx+Math.cos(a)*70,cy+Math.sin(a)*70,22,'#ff4444','O');
+  });
+  atom(ctx,cx,cy,28,'#ccbb00','S','#fff');
+  label(ctx,'평면 삼각형(120°) | 극성 공유 결합 | 황산 원료',cx,h-12,10);
+}
+function drawNO2(ctx,w,h){
+  const cx=w/2,cy=h/2-10;
+  bond(ctx,cx,cy,cx-65,cy+48,2,'#aa88ff');
+  bond(ctx,cx,cy,cx+65,cy+48,1,'#aa88ff');
+  atom(ctx,cx,cy,24,'#6644cc','N','#fff');
+  atom(ctx,cx-65,cy+48,22,'#ff4444','O');
+  atom(ctx,cx+65,cy+48,22,'#ff4444','O');
+  lonePair(ctx,cx,cy,-Math.PI/2,'#ffff00');
+  label(ctx,'134°',cx,cy-45,10,'#ffff88');
+  label(ctx,'굽은형(134°) | 홀전자 | 갈색 독성 기체',cx,h-12,10);
+}
+function drawSiO2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-75,cy,cx,cy,2,'#ccddee');
+  bond(ctx,cx,cy,cx+75,cy,2,'#ccddee');
+  atom(ctx,cx,cy,26,'#667788','Si','#fff');
+  atom(ctx,cx-75,cy,22,'#ff4444','O');
+  atom(ctx,cx+75,cy,22,'#ff4444','O');
+  lonePair(ctx,cx-75,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx-75,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+75,cy,0,'#00ffff');
+  lonePair(ctx,cx+75,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'공유 결합 결정 | 모래·반도체 원료',cx,h-12,10);
+}
+
+// ── 3원소 이상 ──
+function drawHNO3(ctx,w,h){
+  const cx=w/2-20,cy=h/2-10;
+  // H-O-N(=O)₂ 구조
+  atom(ctx,cx-80,cy,16,'#aaaacc','H');
+  atom(ctx,cx-45,cy,22,'#ff4444','O');
+  atom(ctx,cx,cy,24,'#6644cc','N','#fff');
+  atom(ctx,cx+50,cy-35,22,'#ff4444','O');
+  atom(ctx,cx+50,cy+35,22,'#ff4444','O');
+  bond(ctx,cx-80,cy,cx-45,cy,1,'#88ccff');
+  bond(ctx,cx-45,cy,cx,cy,1,'#88ccff');
+  bond(ctx,cx,cy,cx+50,cy-35,2,'#ff88aa');
+  bond(ctx,cx,cy,cx+50,cy+35,1,'#ff88aa');
+  lonePair(ctx,cx+50,cy+35,0,'#00ffff');
+  lonePair(ctx,cx+50,cy-35,Math.PI*0.3,'#00ffff');
+  label(ctx,'H-O-N(=O)₂ | 극성 공유 결합 | 강산',cx+20,h-12,10);
+}
+function drawH2SO4(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  // S 중심, O 4개
+  const oPos=[[0,-65],[65,0],[0,65],[-65,0]];
+  const orders=[2,1,1,2];
+  const hIdx=[1,2]; // O[1], O[2]에 H 붙임
+  oPos.forEach(([dx,dy],i)=>{
+    bond(ctx,cx,cy,cx+dx,cy+dy,orders[i],'#ffbb44');
+    atom(ctx,cx+dx,cy+dy,20,'#ff4444','O');
+    if(hIdx.includes(i)){
+      const hx=cx+dx+(dx===0?(i===1?25:-25):0)+(dy===0?0:(dy<0?0:0));
+      const hy=cy+dy+(dy===0?0:(dy>0?25:-25));
+      bond(ctx,cx+dx,cy+dy,cx+dx+(dy!==0?22:0),cy+dy+(dx!==0?0:22)*(i===1?1:-1),1,'#88ccff');
+      atom(ctx,cx+dx+(dy!==0?28:0),cy+dy+(dx!==0?0:28)*(i===1?1:-1),14,'#aaaacc','H');
+    }
+  });
+  atom(ctx,cx,cy,26,'#ccbb00','S','#fff');
+  label(ctx,'사면체형 | S 중심 | 강산(황산)',cx,h-12,10);
+}
+function drawH3PO4(ctx,w,h){
+  const cx=w/2,cy=h/2+5;
+  // P 중심, O 4개 (하나는 이중결합)
+  const oPos=[[0,-65],[62,30],[-62,30],[0,65]];
+  const orders=[2,1,1,1];
+  oPos.forEach(([dx,dy],i)=>{
+    bond(ctx,cx,cy,cx+dx,cy+dy,orders[i],'#88ffaa');
+    atom(ctx,cx+dx,cy+dy,20,'#ff4444','O');
+    if(i>0){
+      // H 붙이기
+      const ang=Math.atan2(dy,dx);
+      atom(ctx,cx+dx+Math.cos(ang)*32,cy+dy+Math.sin(ang)*32,14,'#aaaacc','H');
+      bond(ctx,cx+dx,cy+dy,cx+dx+Math.cos(ang)*32,cy+dy+Math.sin(ang)*32,1,'#88ccff');
+    }
+  });
+  atom(ctx,cx,cy,26,'#00aa44','P','#fff');
+  label(ctx,'사면체형 | P 중심 | H₃PO₄ 중간 강도 산',cx,h-12,10);
+}
+function drawNaOH(ctx,w,h){
+  ionicBg(ctx,w,h,'#e17055','#ff4444');
+  const cx=w/2,cy=h/2;
+  // Na⁺ / O-H (공유)
+  ion(ctx,cx-85,cy,28,'#e17055','Na','Na⁺','#fff');
+  atom(ctx,cx+5,cy,24,'#ff4444','O');
+  atom(ctx,cx+68,cy,18,'#aaaacc','H');
+  bond(ctx,cx+5,cy,cx+68,cy,1,'#88ccff'); // O-H 공유결합
+  ctx.save(); ctx.strokeStyle='rgba(255,215,0,0.8)'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(cx-55,cy); ctx.lineTo(cx-18,cy); ctx.stroke(); ctx.restore();
+  lonePair(ctx,cx+5,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,ctx,cx+5,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'이온+공유 혼합 | Na⁺ / OH⁻ | 강염기',cx,h-12,10);
+}
+function drawNH4Cl(ctx,w,h){
+  ionicBg(ctx,w,h,'#a29bfe','#00cec9');
+  const cx=w/2-20,cy=h/2;
+  // NH4+ 그리기
+  atom(ctx,cx,cy,22,'#6644cc','N⁺','#fff');
+  [[0,-48],[45,25],[-45,25],[0,48]].forEach(([dx,dy])=>{
+    bond(ctx,cx,cy,cx+dx,cy+dy,1,'#aa88ff');
+    atom(ctx,cx+dx,cy+dy,15,'#aaaacc','H');
+  });
+  // Cl-
+  ion(ctx,cx+118,cy,26,'#00aacc','Cl','Cl⁻','#fff');
+  ctx.save(); ctx.strokeStyle='rgba(255,215,0,0.7)'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(cx+25,cy); ctx.lineTo(cx+88,cy); ctx.stroke(); ctx.restore();
+  label(ctx,'이온+공유 | NH₄⁺ + Cl⁻ | 비료·의약품',cx+50,h-12,10);
+}
+function drawKNO3(ctx,w,h){
+  ionicBg(ctx,w,h,'#e17055','#a29bfe');
+  const cx=w/2+20,cy=h/2;
+  // K+
+  ion(ctx,cx-110,cy,26,'#e17055','K','K⁺','#fff');
+  // NO3- (삼각형)
+  atom(ctx,cx,cy,22,'#6644cc','N','#fff');
+  const oAngles=[Math.PI/2,-Math.PI/6,-Math.PI*5/6];
+  oAngles.forEach((a,i)=>{
+    bond(ctx,cx,cy,cx+Math.cos(a)*55,cy+Math.sin(a)*55,i===0?2:1,'#ff88aa');
+    atom(ctx,cx+Math.cos(a)*55,cy+Math.sin(a)*55,18,'#ff4444','O');
+  });
+  ctx.save(); ctx.strokeStyle='rgba(255,215,0,0.7)'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(cx-88,cy); ctx.lineTo(cx-24,cy); ctx.stroke(); ctx.restore();
+  label(ctx,'이온+공유 | K⁺ + NO₃⁻ | 화약·비료',cx-30,h-12,10);
+}
+function drawC2H6(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  // C-C 결합
+  bond(ctx,cx-35,cy,cx+35,cy,1,'#00ffaa');
+  atom(ctx,cx-35,cy,22,'#666666','C','#fff');
+  atom(ctx,cx+35,cy,22,'#666666','C','#fff');
+  // 왼쪽 C의 H 3개
+  [[-62,cy-32],[-70,cy],[-62,cy+32]].forEach(([x,y])=>{
+    bond(ctx,cx-35,cy,x,y,1,'#00ffaa');
+    atom(ctx,x,y,14,'#aaaacc','H');
+  });
+  // 오른쪽 C의 H 3개
+  [[cx+62,cy-32],[cx+70,cy],[cx+62,cy+32]].forEach(([x,y])=>{
+    bond(ctx,cx+35,cy,x,y,1,'#00ffaa');
+    atom(ctx,x,y,14,'#aaaacc','H');
+  });
+  label(ctx,'H₃C-CH₃ | 비극성 공유 결합 | 천연가스 성분',cx,h-12,10);
+}
+function drawC2H5OH(ctx,w,h){
+  const y=h/2+5;
+  // C-C-O-H
+  bond(ctx,50,y,115,y,1,'#00ffcc');
+  bond(ctx,115,y,178,y,1,'#00ffcc');
+  bond(ctx,178,y,230,y,1,'#00ffcc');
+  atom(ctx,50,y,20,'#666666','C','#fff');
+  atom(ctx,115,y,20,'#666666','C','#fff');
+  atom(ctx,178,y,22,'#ff4444','O');
+  atom(ctx,230,y,16,'#aaaacc','H');
+  [[50,y-42],[50,y+42],[115,y-42],[115,y+42]].forEach(([x,yy])=>{
+    const cx2=x===50?50:115;
+    bond(ctx,cx2,y,x,yy,1,'#00ffcc');
+    atom(ctx,x,yy,14,'#aaaacc','H');
+  });
+  lonePair(ctx,178,y,Math.PI/2,'#00ffff');
+  lonePair(ctx,178,y,-Math.PI/2,'#00ffff');
+  label(ctx,'CH₃-CH₂-OH | 극성 공유 결합 | 소독·연료',w/2,h-12,10);
+}
+
+function drawGenericFn(ctx,w,h,rxn){
+  ctx.fillStyle='rgba(200,200,255,0.7)'; ctx.font='bold 18px Arial';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(rxn.product,w/2,h/2-10);
+  ctx.font='12px Arial'; ctx.fillStyle='rgba(180,220,255,0.6)';
+  ctx.fillText(rxn.equation,w/2,h/2+20);
+}
+
+const DRAW_FNS={
+  drawH2,drawO2,drawN2,drawCl2,drawF2,drawBr2,drawI2,drawMetal,
+  drawH2O,drawH2O2,drawCO2,drawCO,drawNaCl,drawHCl,drawHF,
+  drawMgO,drawCaO,drawH2S,drawSO2,drawNO,drawNa2O,drawCaCl2,
+  drawFe2O3,drawAl2O3,drawNH3,drawCH4,drawSO3,drawNO2,drawSiO2,
+  drawHNO3,drawH2SO4,drawH3PO4,drawNaOH,drawNH4Cl,drawKNO3,
+  drawC2H6,drawC2H5OH,
+};
+
+// ==================== 초기화 버튼 ====================
+document.getElementById('reset-btn').addEventListener('click',()=>{
+  benchElements=[];
+  const bench=document.getElementById('workbench');
+  bench.querySelectorAll('.bench-element,.product-card').forEach(e=>e.remove());
+  document.getElementById('bench-msg').style.display='block';
+  document.getElementById('result-area').style.display='none';
+  bench.style.borderColor=''; bench.style.boxShadow='';
+  const ctx=document.getElementById('structure-canvas').getContext('2d');
+  ctx.clearRect(0,0,320,200);
+});
+
+// ==================== 초기 실행 ====================
+buildPT(); buildLegend();
+</script>
+</body>
+</html>
+
+
+
+							<script>
+                            	
+// ==================== 원소 데이터 ====================
+const ELEMENTS = [
+  {n:1,  sym:'H',  name:'수소',    state:'기체', type:'hydrogen',  col:1,  row:1},
+  {n:2,  sym:'He', name:'헬륨',    state:'기체', type:'noble',     col:18, row:1},
+  {n:3,  sym:'Li', name:'리튬',    state:'고체', type:'alkali',    col:1,  row:2},
+  {n:4,  sym:'Be', name:'베릴륨',  state:'고체', type:'alkaline',  col:2,  row:2},
+  {n:5,  sym:'B',  name:'붕소',    state:'고체', type:'metalloid', col:13, row:2},
+  {n:6,  sym:'C',  name:'탄소',    state:'고체', type:'nonmetal',  col:14, row:2},
+  {n:7,  sym:'N',  name:'질소',    state:'기체', type:'nonmetal',  col:15, row:2},
+  {n:8,  sym:'O',  name:'산소',    state:'기체', type:'nonmetal',  col:16, row:2},
+  {n:9,  sym:'F',  name:'플루오린',state:'기체', type:'halogen',   col:17, row:2},
+  {n:10, sym:'Ne', name:'네온',    state:'기체', type:'noble',     col:18, row:2},
+  {n:11, sym:'Na', name:'나트륨',  state:'고체', type:'alkali',    col:1,  row:3},
+  {n:12, sym:'Mg', name:'마그네슘',state:'고체', type:'alkaline',  col:2,  row:3},
+  {n:13, sym:'Al', name:'알루미늄',state:'고체', type:'metal',     col:13, row:3},
+  {n:14, sym:'Si', name:'규소',    state:'고체', type:'metalloid', col:14, row:3},
+  {n:15, sym:'P',  name:'인',      state:'고체', type:'nonmetal',  col:15, row:3},
+  {n:16, sym:'S',  name:'황',      state:'고체', type:'nonmetal',  col:16, row:3},
+  {n:17, sym:'Cl', name:'염소',    state:'기체', type:'halogen',   col:17, row:3},
+  {n:18, sym:'Ar', name:'아르곤',  state:'기체', type:'noble',     col:18, row:3},
+  {n:19, sym:'K',  name:'칼륨',    state:'고체', type:'alkali',    col:1,  row:4},
+  {n:20, sym:'Ca', name:'칼슘',    state:'고체', type:'alkaline',  col:2,  row:4},
+  {n:21, sym:'Sc', name:'스칸듐',  state:'고체', type:'transition',col:3,  row:4},
+  {n:22, sym:'Ti', name:'타이타늄',state:'고체', type:'transition',col:4,  row:4},
+  {n:23, sym:'V',  name:'바나듐',  state:'고체', type:'transition',col:5,  row:4},
+  {n:24, sym:'Cr', name:'크로뮴',  state:'고체', type:'transition',col:6,  row:4},
+  {n:25, sym:'Mn', name:'망가니즈',state:'고체', type:'transition',col:7,  row:4},
+  {n:26, sym:'Fe', name:'철',      state:'고체', type:'transition',col:8,  row:4},
+  {n:27, sym:'Co', name:'코발트',  state:'고체', type:'transition',col:9,  row:4},
+  {n:28, sym:'Ni', name:'니켈',    state:'고체', type:'transition',col:10, row:4},
+  {n:29, sym:'Cu', name:'구리',    state:'고체', type:'transition',col:11, row:4},
+  {n:30, sym:'Zn', name:'아연',    state:'고체', type:'transition',col:12, row:4},
+  {n:31, sym:'Ga', name:'갈륨',    state:'고체', type:'metal',     col:13, row:4},
+  {n:32, sym:'Ge', name:'저마늄',  state:'고체', type:'metalloid', col:14, row:4},
+  {n:33, sym:'As', name:'비소',    state:'고체', type:'metalloid', col:15, row:4},
+  {n:34, sym:'Se', name:'셀레늄',  state:'고체', type:'nonmetal',  col:16, row:4},
+  {n:35, sym:'Br', name:'브로민',  state:'액체', type:'halogen',   col:17, row:4},
+  {n:36, sym:'Kr', name:'크립톤',  state:'기체', type:'noble',     col:18, row:4},
+  {n:37, sym:'Rb', name:'루비듐',  state:'고체', type:'alkali',    col:1,  row:5},
+  {n:38, sym:'Sr', name:'스트론튬',state:'고체', type:'alkaline',  col:2,  row:5},
+  {n:39, sym:'Y',  name:'이트륨',  state:'고체', type:'transition',col:3,  row:5},
+  {n:40, sym:'Zr', name:'지르코늄',state:'고체', type:'transition',col:4,  row:5},
+  {n:41, sym:'Nb', name:'나이오븀',state:'고체', type:'transition',col:5,  row:5},
+  {n:42, sym:'Mo', name:'몰리브데넘',state:'고체',type:'transition',col:6, row:5},
+  {n:44, sym:'Ru', name:'루테늄',  state:'고체', type:'transition',col:8,  row:5},
+  {n:45, sym:'Rh', name:'로듐',    state:'고체', type:'transition',col:9,  row:5},
+  {n:46, sym:'Pd', name:'팔라듐',  state:'고체', type:'transition',col:10, row:5},
+  {n:47, sym:'Ag', name:'은',      state:'고체', type:'transition',col:11, row:5},
+  {n:48, sym:'Cd', name:'카드뮴',  state:'고체', type:'transition',col:12, row:5},
+  {n:49, sym:'In', name:'인듐',    state:'고체', type:'metal',     col:13, row:5},
+  {n:50, sym:'Sn', name:'주석',    state:'고체', type:'metal',     col:14, row:5},
+  {n:51, sym:'Sb', name:'안티모니',state:'고체', type:'metalloid', col:15, row:5},
+  {n:52, sym:'Te', name:'텔루륨',  state:'고체', type:'metalloid', col:16, row:5},
+  {n:53, sym:'I',  name:'아이오딘',state:'고체', type:'halogen',   col:17, row:5},
+  {n:54, sym:'Xe', name:'제논',    state:'기체', type:'noble',     col:18, row:5},
+  {n:55, sym:'Cs', name:'세슘',    state:'고체', type:'alkali',    col:1,  row:6},
+  {n:56, sym:'Ba', name:'바륨',    state:'고체', type:'alkaline',  col:2,  row:6},
+  {n:72, sym:'Hf', name:'하프늄',  state:'고체', type:'transition',col:4,  row:6},
+  {n:73, sym:'Ta', name:'탄탈럼',  state:'고체', type:'transition',col:5,  row:6},
+  {n:74, sym:'W',  name:'텅스텐',  state:'고체', type:'transition',col:6,  row:6},
+  {n:75, sym:'Re', name:'레늄',    state:'고체', type:'transition',col:7,  row:6},
+  {n:76, sym:'Os', name:'오스뮴',  state:'고체', type:'transition',col:8,  row:6},
+  {n:77, sym:'Ir', name:'이리듐',  state:'고체', type:'transition',col:9,  row:6},
+  {n:78, sym:'Pt', name:'백금',    state:'고체', type:'transition',col:10, row:6},
+  {n:79, sym:'Au', name:'금',      state:'고체', type:'transition',col:11, row:6},
+  {n:80, sym:'Hg', name:'수은',    state:'액체', type:'transition',col:12, row:6},
+  {n:81, sym:'Tl', name:'탈륨',    state:'고체', type:'metal',     col:13, row:6},
+  {n:82, sym:'Pb', name:'납',      state:'고체', type:'metal',     col:14, row:6},
+  {n:83, sym:'Bi', name:'비스무트',state:'고체', type:'metal',     col:15, row:6},
+  {n:85, sym:'At', name:'아스타틴',state:'고체', type:'halogen',   col:17, row:6},
+  {n:86, sym:'Rn', name:'라돈',    state:'기체', type:'noble',     col:18, row:6},
+  {n:87, sym:'Fr', name:'프랑슘',  state:'고체', type:'alkali',    col:1,  row:7},
+  {n:88, sym:'Ra', name:'라듐',    state:'고체', type:'alkaline',  col:2,  row:7},
+];
+
+const LEGEND_DATA=[
+  {type:'hydrogen',label:'수소',color:'#b2bec3'},
+  {type:'alkali',label:'알칼리 금속',color:'#e17055'},
+  {type:'alkaline',label:'알칼리 토금속',color:'#fdcb6e'},
+  {type:'transition',label:'전이 금속',color:'#74b9ff'},
+  {type:'metal',label:'금속',color:'#b2bec3'},
+  {type:'metalloid',label:'준금속',color:'#55efc4'},
+  {type:'nonmetal',label:'비금속',color:'#00b894'},
+  {type:'halogen',label:'할로젠',color:'#fd79a8'},
+  {type:'noble',label:'비활성 기체',color:'#a29bfe'},
+];
+
+// ==================== 반응 데이터 ====================
+const REACTIONS = [
+  // ── 이원자 분자 (단일 원소 결합) ──
+  {id:'H2',   reactants:[{sym:'H',count:2}],
+   product:'H₂', name:'수소 분자', type:'결합(비극성 공유)', bondType:'covalent', color:'#b2bec3',
+   equation:'H + H → H₂',
+   desc:'수소 원자 2개가 단일 공유 결합을 형성합니다.\n가장 가벼운 기체이며 연료 전지에 사용됩니다.', draw:'drawH2'},
+
+  {id:'O2',   reactants:[{sym:'O',count:2}],
+   product:'O₂', name:'산소 분자', type:'결합(비극성 공유)', bondType:'covalent', color:'#ff4444',
+   equation:'O + O → O₂',
+   desc:'산소 원자 2개가 이중 공유 결합을 형성합니다.\n생명 유지에 필수적인 기체입니다.', draw:'drawO2'},
+
+  {id:'N2',   reactants:[{sym:'N',count:2}],
+   product:'N₂', name:'질소 분자', type:'결합(비극성 공유)', bondType:'covalent', color:'#6c5ce7',
+   equation:'N + N → N₂',
+   desc:'질소 원자 2개가 삼중 공유 결합을 형성합니다.\n대기의 약 78%를 차지합니다.', draw:'drawN2'},
+
+  {id:'Cl2',  reactants:[{sym:'Cl',count:2}],
+   product:'Cl₂', name:'염소 분자', type:'결합(비극성 공유)', bondType:'covalent', color:'#00cec9',
+   equation:'Cl + Cl → Cl₂',
+   desc:'염소 원자 2개가 단일 공유 결합을 형성합니다.\n황록색 독성 기체입니다.', draw:'drawCl2'},
+
+  {id:'F2',   reactants:[{sym:'F',count:2}],
+   product:'F₂', name:'플루오린 분자', type:'결합(비극성 공유)', bondType:'covalent', color:'#fd79a8',
+   equation:'F + F → F₂',
+   desc:'플루오린 원자 2개가 단일 공유 결합을 형성합니다.\n반응성이 가장 강한 기체입니다.', draw:'drawF2'},
+
+  {id:'Br2',  reactants:[{sym:'Br',count:2}],
+   product:'Br₂', name:'브로민 분자', type:'결합(비극성 공유)', bondType:'covalent', color:'#e17055',
+   equation:'Br + Br → Br₂',
+   desc:'브로민 원자 2개가 단일 공유 결합을 형성합니다.\n상온에서 액체인 비금속입니다.', draw:'drawBr2'},
+
+  {id:'I2',   reactants:[{sym:'I',count:2}],
+   product:'I₂', name:'아이오딘 분자', type:'결합(비극성 공유)', bondType:'covalent', color:'#6c5ce7',
+   equation:'I + I → I₂',
+   desc:'아이오딘 원자 2개가 단일 공유 결합을 형성합니다.\n상온에서 고체이며 보라색 증기를 냅니다.', draw:'drawI2'},
+
+  // ── 금속 결합 ──
+  {id:'Fe_m', reactants:[{sym:'Fe',count:3}],
+   product:'Fe', name:'철(금속 결합)', type:'금속 결합', bondType:'metallic', color:'#74b9ff',
+   equation:'Fe(s) 금속 결합',
+   desc:'철 원자들이 금속 결합을 형성합니다.\n자유 전자의 바다 모형으로 설명합니다.\n전기·열 전도성이 우수합니다.', draw:'drawMetal'},
+
+  {id:'Cu_m', reactants:[{sym:'Cu',count:3}],
+   product:'Cu', name:'구리(금속 결합)', type:'금속 결합', bondType:'metallic', color:'#e17055',
+   equation:'Cu(s) 금속 결합',
+   desc:'구리 원자들이 금속 결합을 형성합니다.\n전기 전도성이 매우 우수합니다.', draw:'drawMetal'},
+
+  {id:'Au_m', reactants:[{sym:'Au',count:3}],
+   product:'Au', name:'금(금속 결합)', type:'금속 결합', bondType:'metallic', color:'#fdcb6e',
+   equation:'Au(s) 금속 결합',
+   desc:'금 원자들이 금속 결합을 형성합니다.\n연성·전성이 매우 크고 부식되지 않습니다.', draw:'drawMetal'},
+
+  // ── 이성분 화합물 ──
+  {id:'H2O',  reactants:[{sym:'H',count:2},{sym:'O',count:1}],
+   product:'H₂O', name:'물', type:'합성 반응', bondType:'covalent', color:'#74b9ff',
+   equation:'2H₂ + O₂ → 2H₂O',
+   desc:'수소와 산소가 공유 결합하여 물을 형성합니다.\n굽은형(V형) 구조, 결합각 ≈ 104.5°\n극성 공유 결합입니다.', draw:'drawH2O'},
+
+  {id:'H2O2', reactants:[{sym:'H',count:2},{sym:'O',count:2}],
+   product:'H₂O₂', name:'과산화수소', type:'합성 반응', bondType:'covalent', color:'#74b9ff',
+   equation:'H₂ + O₂ → H₂O₂',
+   desc:'H-O-O-H 구조의 극성 공유 결합 분자.\n소독약 성분으로 사용됩니다.', draw:'drawH2O2'},
+
+  {id:'CO2',  reactants:[{sym:'C',count:1},{sym:'O',count:2}],
+   product:'CO₂', name:'이산화탄소', type:'산화 반응', bondType:'covalent', color:'#fd79a8',
+   equation:'C + O₂ → CO₂',
+   desc:'O=C=O 선형 구조, 이중 공유 결합.\n탄소의 완전 연소 생성물입니다.', draw:'drawCO2'},
+
+  {id:'CO',   reactants:[{sym:'C',count:1},{sym:'O',count:1}],
+   product:'CO', name:'일산화탄소', type:'불완전 산화', bondType:'covalent', color:'#fd79a8',
+   equation:'2C + O₂ → 2CO',
+   desc:'C≡O 삼중 결합 구조.\n탄소의 불완전 연소로 생성되는 독성 기체입니다.', draw:'drawCO'},
+
+  {id:'NaCl', reactants:[{sym:'Na',count:1},{sym:'Cl',count:1}],
+   product:'NaCl', name:'염화나트륨(소금)', type:'합성 반응', bondType:'ionic', color:'#fdcb6e',
+   equation:'2Na + Cl₂ → 2NaCl',
+   desc:'Na → Na⁺(전자 1개 잃음)\nCl → Cl⁻(전자 1개 얻음)\n강한 이온 결합으로 소금이 형성됩니다.', draw:'drawNaCl'},
+
+  {id:'HCl',  reactants:[{sym:'H',count:1},{sym:'Cl',count:1}],
+   product:'HCl', name:'염화수소', type:'합성 반응', bondType:'covalent', color:'#00cec9',
+   equation:'H₂ + Cl₂ → 2HCl',
+   desc:'H-Cl 극성 공유 결합.\n물에 녹으면 강산(염산)이 됩니다.', draw:'drawHCl'},
+
+  {id:'HF',   reactants:[{sym:'H',count:1},{sym:'F',count:1}],
+   product:'HF', name:'플루오린화수소', type:'합성 반응', bondType:'covalent', color:'#fd79a8',
+   equation:'H₂ + F₂ → 2HF',
+   desc:'H-F 강한 극성 공유 결합.\nF의 전기음성도가 4.0으로 가장 큽니다.', draw:'drawHF'},
+
+  {id:'MgO',  reactants:[{sym:'Mg',count:1},{sym:'O',count:1}],
+   product:'MgO', name:'산화마그네슘', type:'합성 반응', bondType:'ionic', color:'#fdcb6e',
+   equation:'2Mg + O₂ → 2MgO',
+   desc:'Mg²⁺와 O²⁻의 이온 결합.\n전자 2개가 이동하는 강한 이온 결합입니다.', draw:'drawMgO'},
+
+  {id:'CaO',  reactants:[{sym:'Ca',count:1},{sym:'O',count:1}],
+   product:'CaO', name:'산화칼슘(생석회)', type:'합성 반응', bondType:'ionic', color:'#fdcb6e',
+   equation:'2Ca + O₂ → 2CaO',
+   desc:'Ca²⁺와 O²⁻의 이온 결합.\n생석회라 불리며 시멘트 원료입니다.', draw:'drawCaO'},
+
+  {id:'H2S',  reactants:[{sym:'H',count:2},{sym:'S',count:1}],
+   product:'H₂S', name:'황화수소', type:'합성 반응', bondType:'covalent', color:'#ffeaa7',
+   equation:'H₂ + S → H₂S',
+   desc:'H₂O와 유사한 굽은형 구조.\n결합각 ≈ 92°, 달걀 썩는 냄새의 독성 기체.', draw:'drawH2S'},
+
+  {id:'SO2',  reactants:[{sym:'S',count:1},{sym:'O',count:2}],
+   product:'SO₂', name:'이산화황', type:'산화 반응', bondType:'covalent', color:'#fd79a8',
+   equation:'S + O₂ → SO₂',
+   desc:'굽은형 구조, 결합각 ≈ 119°.\n산성비의 원인 물질입니다.', draw:'drawSO2'},
+
+  {id:'NO',   reactants:[{sym:'N',count:1},{sym:'O',count:1}],
+   product:'NO', name:'일산화질소', type:'합성 반응', bondType:'covalent', color:'#a29bfe',
+   equation:'N₂ + O₂ → 2NO',
+   desc:'N=O 이중 결합(홀전자 있음).\n혈관 이완 신호 물질입니다.', draw:'drawNO'},
+
+  {id:'Na2O', reactants:[{sym:'Na',count:2},{sym:'O',count:1}],
+   product:'Na₂O', name:'산화나트륨', type:'합성 반응', bondType:'ionic', color:'#e17055',
+   equation:'4Na + O₂ → 2Na₂O',
+   desc:'2×Na⁺와 O²⁻의 이온 결합.\n물과 반응하면 강염기 NaOH가 됩니다.', draw:'drawNa2O'},
+
+  {id:'CaCl2',reactants:[{sym:'Ca',count:1},{sym:'Cl',count:2}],
+   product:'CaCl₂', name:'염화칼슘', type:'합성 반응', bondType:'ionic', color:'#fdcb6e',
+   equation:'Ca + Cl₂ → CaCl₂',
+   desc:'Ca²⁺와 2×Cl⁻의 이온 결합.\n제습제·도로 제설제로 사용됩니다.', draw:'drawCaCl2'},
+
+  {id:'Fe2O3',reactants:[{sym:'Fe',count:4},{sym:'O',count:3}],
+   product:'Fe₂O₃', name:'산화철(녹)', type:'산화·환원', bondType:'ionic', color:'#e17055',
+   equation:'4Fe + 3O₂ → 2Fe₂O₃',
+   desc:'Fe³⁺와 O²⁻의 이온 결합.\n철이 산화되어 녹이 되는 반응입니다.', draw:'drawFe2O3'},
+
+  {id:'Al2O3',reactants:[{sym:'Al',count:4},{sym:'O',count:3}],
+   product:'Al₂O₃', name:'산화알루미늄', type:'합성 반응', bondType:'ionic', color:'#b2bec3',
+   equation:'4Al + 3O₂ → 2Al₂O₃',
+   desc:'Al³⁺와 O²⁻의 이온 결합.\n알루미늄 표면 보호막 역할을 합니다.', draw:'drawAl2O3'},
+
+  // ── 3원소 이상 화합물 ──
+  {id:'NH3',  reactants:[{sym:'N',count:1},{sym:'H',count:3}],
+   product:'NH₃', name:'암모니아', type:'합성 반응', bondType:'covalent', color:'#a29bfe',
+   equation:'N₂ + 3H₂ → 2NH₃',
+   desc:'삼각뿔형 구조, 비공유 전자쌍 1쌍.\n결합각 ≈ 107°, 비료·냉매에 사용됩니다.', draw:'drawNH3'},
+
+  {id:'CH4',  reactants:[{sym:'C',count:1},{sym:'H',count:4}],
+   product:'CH₄', name:'메탄', type:'합성 반응', bondType:'covalent', color:'#00b894',
+   equation:'C + 2H₂ → CH₄',
+   desc:'정사면체형 구조, 결합각 ≈ 109.5°.\n비극성 공유 결합, 천연가스의 주성분입니다.', draw:'drawCH4'},
+
+  {id:'SO3',  reactants:[{sym:'S',count:1},{sym:'O',count:3}],
+   product:'SO₃', name:'삼산화황', type:'산화 반응', bondType:'covalent', color:'#fd79a8',
+   equation:'2SO₂ + O₂ → 2SO₃',
+   desc:'평면 삼각형 구조, 결합각 = 120°.\n황산 제조의 중간 생성물입니다.', draw:'drawSO3'},
+
+  {id:'NO2',  reactants:[{sym:'N',count:1},{sym:'O',count:2}],
+   product:'NO₂', name:'이산화질소', type:'산화 반응', bondType:'covalent', color:'#a29bfe',
+   equation:'2NO + O₂ → 2NO₂',
+   desc:'굽은형 구조, 결합각 ≈ 134°.\n갈색 독성 기체, 광화학 스모그 원인입니다.', draw:'drawNO2'},
+
+  {id:'SiO2', reactants:[{sym:'Si',count:1},{sym:'O',count:2}],
+   product:'SiO₂', name:'이산화규소', type:'합성 반응', bondType:'covalent', color:'#dfe6e9',
+   equation:'Si + O₂ → SiO₂',
+   desc:'공유 결합 결정 구조.\n모래의 주성분, 반도체·유리 원료입니다.', draw:'drawSiO2'},
+
+  // ── 3원소 이상 (N,H,O / C,H,O 등) ──
+  {id:'HNO3', reactants:[{sym:'H',count:1},{sym:'N',count:1},{sym:'O',count:3}],
+   product:'HNO₃', name:'질산', type:'합성 반응(3원소)', bondType:'covalent', color:'#a29bfe',
+   equation:'3NO₂ + H₂O → 2HNO₃ + NO',
+   desc:'N이 중심, O 3개와 H 1개가 결합.\nH-O-N(=O)₂ 구조, 강산입니다.\n비료·화약 제조에 사용됩니다.', draw:'drawHNO3'},
+
+  {id:'H2SO4',reactants:[{sym:'H',count:2},{sym:'S',count:1},{sym:'O',count:4}],
+   product:'H₂SO₄', name:'황산', type:'합성 반응(3원소)', bondType:'covalent', color:'#ffeaa7',
+   equation:'SO₃ + H₂O → H₂SO₄',
+   desc:'S가 중심, O 4개와 H 2개 결합.\n사면체형 구조의 강산입니다.\n배터리·비료 제조에 사용됩니다.', draw:'drawH2SO4'},
+
+  {id:'H3PO4',reactants:[{sym:'H',count:3},{sym:'P',count:1},{sym:'O',count:4}],
+   product:'H₃PO₄', name:'인산', type:'합성 반응(3원소)', bondType:'covalent', color:'#00b894',
+   equation:'P₄O₁₀ + 6H₂O → 4H₃PO₄',
+   desc:'P가 중심, O 4개와 H 3개 결합.\n사면체형 구조의 중간 강도 산.\n비료·세제·식품 첨가물로 사용됩니다.', draw:'drawH3PO4'},
+
+  {id:'NaOH', reactants:[{sym:'Na',count:1},{sym:'O',count:1},{sym:'H',count:1}],
+   product:'NaOH', name:'수산화나트륨', type:'합성 반응(3원소)', bondType:'ionic', color:'#e17055',
+   equation:'Na₂O + H₂O → 2NaOH',
+   desc:'Na⁺와 OH⁻의 이온 결합.\nOH⁻ 내부는 공유 결합.\n강염기로 비누·제지 산업에 사용됩니다.', draw:'drawNaOH'},
+
+  {id:'NH4Cl',reactants:[{sym:'N',count:1},{sym:'H',count:4},{sym:'Cl',count:1}],
+   product:'NH₄Cl', name:'염화암모늄', type:'합성 반응(3원소)', bondType:'ionic', color:'#a29bfe',
+   equation:'NH₃ + HCl → NH₄Cl',
+   desc:'NH₄⁺와 Cl⁻의 이온 결합.\nNH₄⁺ 내부는 공유 결합+배위 결합.\n비료·의약품에 사용됩니다.', draw:'drawNH4Cl'},
+
+  {id:'KNO3', reactants:[{sym:'K',count:1},{sym:'N',count:1},{sym:'O',count:3}],
+   product:'KNO₃', name:'질산칼륨', type:'합성 반응(3원소)', bondType:'ionic', color:'#e17055',
+   equation:'KOH + HNO₃ → KNO₃ + H₂O',
+   desc:'K⁺와 NO₃⁻의 이온 결합.\nNO₃⁻ 내부는 공유 결합.\n화약·비료에 사용됩니다.', draw:'drawKNO3'},
+
+  {id:'C2H6', reactants:[{sym:'C',count:2},{sym:'H',count:6}],
+   product:'C₂H₆', name:'에탄', type:'합성 반응(다원소)', bondType:'covalent', color:'#00b894',
+   equation:'2C + 3H₂ → C₂H₆',
+   desc:'C-C 단일 결합 + C-H 결합 6개.\n정사면체형 구조, 천연가스 성분.\n비극성 공유 결합입니다.', draw:'drawC2H6'},
+
+  {id:'C2H5OH',reactants:[{sym:'C',count:2},{sym:'H',count:6},{sym:'O',count:1}],
+   product:'C₂H₅OH', name:'에탄올', type:'합성 반응(다원소)', bondType:'covalent', color:'#00cec9',
+   equation:'2C + 3H₂ + ½O₂ → C₂H₅OH',
+   desc:'C-C-O 뼈대 구조, 극성 공유 결합.\n소독·연료로 사용됩니다.', draw:'drawC2H5OH'},
+];
+
+// ==================== 전역 상태 ====================
+let benchElements=[], dragging=null, idCounter=0, isAnimating=false;
+
+// ==================== 유틸 ====================
+function getGrad(t){
+  const m={hydrogen:'linear-gradient(135deg,#dfe6e9,#b2bec3)',
+    alkali:'linear-gradient(135deg,#e17055,#d63031)',
+    alkaline:'linear-gradient(135deg,#fdcb6e,#e67e22)',
+    transition:'linear-gradient(135deg,#74b9ff,#0984e3)',
+    metal:'linear-gradient(135deg,#b2bec3,#636e72)',
+    metalloid:'linear-gradient(135deg,#55efc4,#00b894)',
+    nonmetal:'linear-gradient(135deg,#00b894,#00cec9)',
+    halogen:'linear-gradient(135deg,#fd79a8,#e84393)',
+    noble:'linear-gradient(135deg,#6c5ce7,#a29bfe)'};
+  return m[t]||'linear-gradient(135deg,#636e72,#2d3436)';
+}
+function isDark(t){return ['alkaline','metalloid','hydrogen'].includes(t);}
+function rand(a,b){return Math.random()*(b-a)+a;}
+function randInt(a,b){return Math.floor(rand(a,b));}
+
+// ==================== 주기율표 ====================
+function buildPT(){
+  const c=document.getElementById('pt-container');
+  c.innerHTML='';
+  const grid={};
+  ELEMENTS.forEach(el=>{grid[`${el.row}-${el.col}`]=el;});
+
+  // 첫 행: 빈칸 + 족 라벨
+  const tl=document.createElement('div'); c.appendChild(tl);
+  for(let g=1;g<=18;g++){
+    const d=document.createElement('div');
+    d.className='group-label'; d.textContent=g+'족'; c.appendChild(d);
+  }
+
+  for(let r=1;r<=7;r++){
+    const pl=document.createElement('div');
+    pl.className='period-label'; pl.textContent=r+'주기'; c.appendChild(pl);
+
+    for(let col=1;col<=18;col++){
+      if(r===6&&col===3){
+        const d=document.createElement('div');
+        d.className='element empty-cell';
+        d.style.cssText='background:rgba(255,235,150,0.1)!important;border:1px dashed rgba(255,235,150,0.3)!important;pointer-events:none!important;font-size:0.32rem;color:rgba(255,235,150,0.6);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+        d.innerHTML='<span>57-71</span><span>란타넘족</span>'; c.appendChild(d); continue;
+      }
+      if(r===7&&col===3){
+        const d=document.createElement('div');
+        d.className='element empty-cell';
+        d.style.cssText='background:rgba(129,236,236,0.1)!important;border:1px dashed rgba(129,236,236,0.3)!important;pointer-events:none!important;font-size:0.32rem;color:rgba(129,236,236,0.6);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+        d.innerHTML='<span>89-103</span><span>악티늄족</span>'; c.appendChild(d); continue;
+      }
+      const el=grid[`${r}-${col}`];
+      const cell=document.createElement('div');
+      if(el){
+        cell.className=`element ${el.type}`;
+        cell.innerHTML=`<span class="num">${el.n}</span><span class="sym">${el.sym}</span><span class="st">${el.state}</span>`;
+        cell.title=`${el.name} (${el.n}번)`;
+        cell.addEventListener('mousedown',e=>startTableDrag(e,el));
+        cell.addEventListener('touchstart',e=>startTableDragTouch(e,el),{passive:false});
+      } else {
+        cell.className='element empty-cell';
+        cell.style.cssText='background:transparent!important;border:none!important;pointer-events:none!important;';
+      }
+      c.appendChild(cell);
+    }
+  }
+}
+
+function buildLegend(){
+  const el=document.getElementById('legend');
+  LEGEND_DATA.forEach(l=>{
+    const d=document.createElement('div'); d.className='legend-item';
+    d.innerHTML=`<div class="legend-dot" style="background:${l.color}"></div>${l.label}`;
+    el.appendChild(d);
+  });
+}
+
+// ==================== 플로팅 원소 생성 ====================
+function createFloat(elData,x,y){
+  const div=document.createElement('div');
+  div.className=`floating-element ${elData.type}`;
+  div.style.left=(x-22)+'px'; div.style.top=(y-26)+'px';
+  div.innerHTML=`<span class="sym">${elData.sym}</span><span class="st">${elData.state}</span>`;
+  document.body.appendChild(div); return div;
+}
+
+// ==================== 주기율표 드래그 ====================
+function startTableDrag(e,el){
+  e.preventDefault();
+  const floatEl=createFloat(el,e.clientX,e.clientY);
+  dragging={floatEl,elData:el,fromTable:true};
+  const move=ev=>{
+    floatEl.style.left=(ev.clientX-22)+'px';
+    floatEl.style.top=(ev.clientY-26)+'px';
+    hlDrop(ev.clientX,ev.clientY);
+  };
+  const up=ev=>{
+    document.removeEventListener('mousemove',move);
+    document.removeEventListener('mouseup',up);
+    finishTableDrop(ev.clientX,ev.clientY);
+    floatEl.remove(); dragging=null;
+  };
+  document.addEventListener('mousemove',move);
+  document.addEventListener('mouseup',up);
+}
+function startTableDragTouch(e,el){
+  e.preventDefault();
+  const t=e.touches[0];
+  const floatEl=createFloat(el,t.clientX,t.clientY);
+  dragging={floatEl,elData:el,fromTable:true};
+  const move=ev=>{
+    ev.preventDefault();
+    const tt=ev.touches[0];
+    floatEl.style.left=(tt.clientX-22)+'px';
+    floatEl.style.top=(tt.clientY-26)+'px';
+    hlDrop(tt.clientX,tt.clientY);
+  };
+  const up=ev=>{
+    document.removeEventListener('touchmove',move);
+    document.removeEventListener('touchend',up);
+    const tt=ev.changedTouches[0];
+    finishTableDrop(tt.clientX,tt.clientY);
+    floatEl.remove(); dragging=null;
+  };
+  document.addEventListener('touchmove',move,{passive:false});
+  document.addEventListener('touchend',up);
+}
+
+function hlDrop(cx,cy){
+  const bench=document.getElementById('workbench');
+  const trash=document.getElementById('trash');
+  const br=bench.getBoundingClientRect();
+  const tr=trash.getBoundingClientRect();
+  bench.classList.toggle('drag-over-bench',cx>=br.left&&cx<=br.right&&cy>=br.top&&cy<=br.bottom);
+  trash.classList.toggle('drag-over',cx>=tr.left&&cx<=tr.right&&cy>=tr.top&&cy<=tr.bottom);
+}
+
+function finishTableDrop(cx,cy){
+  const bench=document.getElementById('workbench');
+  const trash=document.getElementById('trash');
+  const br=bench.getBoundingClientRect();
+  const tr=trash.getBoundingClientRect();
+  bench.classList.remove('drag-over-bench');
+  trash.classList.remove('drag-over');
+  if(cx>=br.left&&cx<=br.right&&cy>=br.top&&cy<=br.bottom){
+    const x=Math.max(5,Math.min(br.width-51,cx-br.left-23));
+    const y=Math.max(5,Math.min(br.height-59,cy-br.top-27));
+    addToBench(dragging.elData,x,y);
+  }
+}
+
+// ==================== 작업대 관리 ====================
+function addToBench(elData,x,y){
+  const id=idCounter++;
+  benchElements.push({id,...elData,x,y});
+  renderBench();
+}
+function removeBenchEl(id){
+  benchElements=benchElements.filter(e=>e.id!==id);
+  renderBench();
+}
+
+function renderBench(){
+  const bench=document.getElementById('workbench');
+  bench.querySelectorAll('.bench-element,.product-card').forEach(e=>e.remove());
+  document.getElementById('bench-msg').style.display=benchElements.length===0?'block':'none';
+  benchElements.forEach(elData=>{
+    const card=document.createElement('div');
+    card.className=`bench-element ${elData.type}`;
+    card.style.left=elData.x+'px'; card.style.top=elData.y+'px';
+    card.innerHTML=`<span class="sym">${elData.sym}</span><span class="st">${elData.state}</span>`;
+    card.title=elData.name;
+    card.addEventListener('mousedown',e=>startBenchMove(e,elData.id,card));
+    card.addEventListener('touchstart',e=>startBenchMoveTouch(e,elData.id,card),{passive:false});
+    bench.appendChild(card);
+  });
+}
+
+// ==================== 작업대 내 이동 (개선된 휴지통 감지) ====================
+function startBenchMove(e,id,cardEl){
+  e.preventDefault(); e.stopPropagation();
+  const bench=document.getElementById('workbench');
+  const br=bench.getBoundingClientRect();
+  const el=benchElements.find(el=>el.id===id);
+  if(!el)return;
+  let ox=e.clientX-br.left-el.x;
+  let oy=e.clientY-br.top-el.y;
+
+  // 카드를 body 레벨 플로팅으로 올려서 overflow 제한 없앰
+  const floatEl=document.createElement('div');
+  floatEl.className=`floating-element ${el.type}`;
+  floatEl.style.left=(e.clientX-22)+'px';
+  floatEl.style.top=(e.clientY-26)+'px';
+  floatEl.innerHTML=`<span class="sym">${el.sym}</span><span class="st">${el.state}</span>`;
+  floatEl.style.pointerEvents='none';
+  document.body.appendChild(floatEl);
+  cardEl.style.opacity='0.3';
+
+  function move(ev){
+    floatEl.style.left=(ev.clientX-22)+'px';
+    floatEl.style.top=(ev.clientY-26)+'px';
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    document.getElementById('trash').classList.toggle('drag-over',
+      ev.clientX>=tr.left&&ev.clientX<=tr.right&&ev.clientY>=tr.top&&ev.clientY<=tr.bottom);
+    const brr=bench.getBoundingClientRect();
+    bench.classList.toggle('drag-over-bench',
+      ev.clientX>=brr.left&&ev.clientX<=brr.right&&ev.clientY>=brr.top&&ev.clientY<=brr.bottom);
+  }
+  function up(ev){
+    document.removeEventListener('mousemove',move);
+    document.removeEventListener('mouseup',up);
+    floatEl.remove();
+    cardEl.style.opacity='';
+    document.getElementById('trash').classList.remove('drag-over');
+    bench.classList.remove('drag-over-bench');
+
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    const brr=bench.getBoundingClientRect();
+
+    if(ev.clientX>=tr.left&&ev.clientX<=tr.right&&ev.clientY>=tr.top&&ev.clientY<=tr.bottom){
+      // 휴지통에 버리기
+      trashFx(); removeBenchEl(id);
+    } else {
+      // 작업대 내 이동 (작업대 밖이어도 마지막 위치로)
+      const idx=benchElements.findIndex(el=>el.id===id);
+      if(idx!==-1){
+        const nx=ev.clientX-brr.left-ox;
+        const ny=ev.clientY-brr.top-oy;
+        benchElements[idx].x=Math.max(0,Math.min(brr.width-50,nx));
+        benchElements[idx].y=Math.max(0,Math.min(brr.height-58,ny));
+      }
+      renderBench();
+    }
+  }
+  document.addEventListener('mousemove',move);
+  document.addEventListener('mouseup',up);
+}
+
+function startBenchMoveTouch(e,id,cardEl){
+  e.preventDefault(); e.stopPropagation();
+  const bench=document.getElementById('workbench');
+  const br=bench.getBoundingClientRect();
+  const el=benchElements.find(el=>el.id===id);
+  if(!el)return;
+  const t0=e.touches[0];
+  let ox=t0.clientX-br.left-el.x;
+  let oy=t0.clientY-br.top-el.y;
+
+  const floatEl=document.createElement('div');
+  floatEl.className=`floating-element ${el.type}`;
+  floatEl.style.left=(t0.clientX-22)+'px';
+  floatEl.style.top=(t0.clientY-26)+'px';
+  floatEl.innerHTML=`<span class="sym">${el.sym}</span><span class="st">${el.state}</span>`;
+  floatEl.style.pointerEvents='none';
+  document.body.appendChild(floatEl);
+  cardEl.style.opacity='0.3';
+
+  function move(ev){
+    ev.preventDefault();
+    const t=ev.touches[0];
+    floatEl.style.left=(t.clientX-22)+'px';
+    floatEl.style.top=(t.clientY-26)+'px';
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    document.getElementById('trash').classList.toggle('drag-over',
+      t.clientX>=tr.left&&t.clientX<=tr.right&&t.clientY>=tr.top&&t.clientY<=tr.bottom);
+  }
+  function up(ev){
+    document.removeEventListener('touchmove',move);
+    document.removeEventListener('touchend',up);
+    floatEl.remove(); cardEl.style.opacity='';
+    document.getElementById('trash').classList.remove('drag-over');
+    const t=ev.changedTouches[0];
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    const brr=bench.getBoundingClientRect();
+    if(t.clientX>=tr.left&&t.clientX<=tr.right&&t.clientY>=tr.top&&t.clientY<=tr.bottom){
+      trashFx(); removeBenchEl(id);
+    } else {
+      const idx=benchElements.findIndex(el=>el.id===id);
+      if(idx!==-1){
+        benchElements[idx].x=Math.max(0,Math.min(brr.width-50,t.clientX-brr.left-ox));
+        benchElements[idx].y=Math.max(0,Math.min(brr.height-58,t.clientY-brr.top-oy));
+      }
+      renderBench();
+    }
+  }
+  document.addEventListener('touchmove',move,{passive:false});
+  document.addEventListener('touchend',up);
+}
+
+// ==================== 반응 찾기 (정확한 계수비) ====================
+function findReaction(){
+  const cur={};
+  benchElements.forEach(el=>{cur[el.sym]=(cur[el.sym]||0)+1;});
+  for(const rxn of REACTIONS){
+    const req={};
+    rxn.reactants.forEach(r=>{req[r.sym]=r.count;});
+    const ck=Object.keys(cur).sort().join(',');
+    const rk=Object.keys(req).sort().join(',');
+    if(ck!==rk)continue;
+    let ok=true;
+    for(const k in req){if(cur[k]!==req[k]){ok=false;break;}}
+    if(ok)return rxn;
+  }
+  return null;
+}
+
+// ==================== 반응 버튼 ====================
+document.getElementById('react-btn').addEventListener('click',()=>{
+  if(isAnimating)return;
+  if(benchElements.length===0){
+    showMsg('⚠️ 원소가 없습니다!','작업대에 원소를 먼저 올려주세요.',false);return;
+  }
+  const rxn=findReaction();
+  if(rxn){startReactionAnim(rxn);}
+  else{
+    noRxnFx();
+    const cur={};
+    benchElements.forEach(el=>{cur[el.sym]=(cur[el.sym]||0)+1;});
+    const str=Object.entries(cur).map(([k,v])=>`${k}×${v}`).join(' + ');
+    showMsg('❌ 반응 없음 / 계수비 불일치',`현재: ${str}\n\n계수비가 맞지 않거나 미등록 반응입니다.\n힌트 패널을 참고하세요!`,false);
+  }
+});
+
+// ==================== 애니메이션 ====================
+function startReactionAnim(rxn){
+  isAnimating=true;
+  document.getElementById('react-btn').disabled=true;
+  const bench=document.getElementById('workbench');
+  const br=bench.getBoundingClientRect();
+  const cx=br.left+br.width/2, cy=br.top+br.height/2;
+  const cards=bench.querySelectorAll('.bench-element');
+  const infos=[];
+  cards.forEach((card,i)=>{
+    const r=card.getBoundingClientRect();
+    infos.push({el:benchElements[i]||benchElements[0],rect:r,mx:r.left+r.width/2,my:r.top+r.height/2});
+  });
+  const clones=infos.map(info=>{
+    const cl=document.createElement('div');
+    cl.className='converge-el';
+    cl.style.cssText=`left:${info.rect.left}px;top:${info.rect.top}px;
+      width:${info.rect.width}px;height:${info.rect.height}px;
+      background:${getGrad(info.el.type)};
+      color:${isDark(info.el.type)?'#333':'#fff'};`;
+    cl.textContent=info.el.sym;
+    document.body.appendChild(cl); return cl;
+  });
+  cards.forEach(c=>{c.style.opacity='0';});
+  clones.forEach((cl,i)=>{
+    setTimeout(()=>{cl.style.animation='shake 0.4s ease';},i*50);
+  });
+  spawnOrbit(cx,cy,rxn.color);
+  infos.forEach(info=>spawnSpark(info.mx,info.my,cx,cy,rxn.color));
+  setTimeout(()=>{
+    clones.forEach((cl,i)=>animConverge(cl,infos[i].rect.left,infos[i].rect.top,cx-23,cy-27,500));
+  },500);
+  setTimeout(()=>{
+    clones.forEach(c=>c.remove());
+    triggerExplosion(cx,cy,rxn);
+    spawnParticles(cx,cy,rxn.color,rxn.bondType);
+    createFlash(rxn.color);
+    spawnSmoke(cx,cy,bench,br);
+    benchShake();
+  },1100);
+  setTimeout(()=>{
+    benchElements=[];renderBench();
+    spawnProduct(bench,rxn);
+    showResult(rxn);
+    document.getElementById('react-btn').disabled=false;
+    isAnimating=false;
+  },1700);
+}
+
+function animConverge(el,fx,fy,tx,ty,dur){
+  const st=performance.now();
+  (function step(now){
+    const t=Math.min((now-st)/dur,1),e=1-Math.pow(1-t,3);
+    el.style.left=(fx+(tx-fx)*e)+'px'; el.style.top=(fy+(ty-fy)*e)+'px';
+    el.style.transform=`scale(${1-t*0.4}) rotate(${t*360}deg)`;
+    el.style.opacity=String(1-t*0.3);
+    if(t<1)requestAnimationFrame(step);
+  })(performance.now());
+}
+function triggerExplosion(cx,cy,rxn){
+  const bench=document.getElementById('workbench');
+  const br=bench.getBoundingClientRect();
+  const lx=cx-br.left, ly=cy-br.top;
+  [rxn.color,'#fff','#ffd700',rxn.color,'#fff'].forEach((color,i)=>{
+    setTimeout(()=>{
+      const ring=document.createElement('div');
+      ring.className='explosion-ring';
+      ring.style.cssText=`left:${lx}px;top:${ly}px;width:20px;height:20px;border-color:${color};box-shadow:0 0 10px ${color};`;
+      bench.appendChild(ring);
+      const st=performance.now(),dur=700+i*100;
+      (function step(now){
+        const t=Math.min((now-st)/dur,1),s=20+t*(200+i*50);
+        ring.style.width=s+'px';ring.style.height=s+'px';
+        ring.style.opacity=String(1-t);ring.style.borderWidth=(4-t*3)+'px';
+        if(t<1)requestAnimationFrame(step);else ring.remove();
+      })(performance.now());
+    },i*80);
+  });
+}
+function spawnParticles(cx,cy,baseColor,bondType){
+  const bench=document.getElementById('workbench');
+  const br=bench.getBoundingClientRect();
+  const lx=cx-br.left,ly=cy-br.top;
+  const palette=bondType==='ionic'?[baseColor,'#ffd700','#fff','#fdcb6e','#ff7675']
+    :bondType==='metallic'?[baseColor,'#74b9ff','#dfe6e9','#b2bec3','#ffd700']
+    :[baseColor,'#55efc4','#fff','#74b9ff','#dfe6e9'];
+  for(let i=0;i<50;i++){
+    const p=document.createElement('div');
+    const sz=rand(4,14),color=palette[randInt(0,palette.length)];
+    const ang=rand(0,Math.PI*2),spd=rand(40,170),vx=Math.cos(ang)*spd,vy=Math.sin(ang)*spd,dur=rand(600,1300);
+    p.style.cssText=`position:absolute;width:${sz}px;height:${sz}px;background:${color};
+      left:${lx}px;top:${ly}px;border-radius:${Math.random()>0.5?'50%':'2px'};
+      box-shadow:0 0 ${sz}px ${color};pointer-events:none;z-index:20;`;
+    bench.appendChild(p);
+    const st=performance.now();
+    (function anim(now){
+      const t=Math.min((now-st)/dur,1);
+      p.style.left=(lx+vx*t)+'px';p.style.top=(ly+vy*t+70*t*t)+'px';
+      p.style.opacity=String(1-t*t);p.style.transform=`scale(${1-t}) rotate(${t*360}deg)`;
+      if(t<1)requestAnimationFrame(anim);else p.remove();
+    })(performance.now());
+  }
+}
+function spawnOrbit(cx,cy,color){
+  for(let i=0;i<8;i++){
+    const el=document.createElement('div');
+    el.style.cssText=`position:fixed;width:8px;height:8px;border-radius:50%;
+      left:${cx}px;top:${cy}px;background:${color};pointer-events:none;z-index:8500;
+      box-shadow:0 0 8px ${color},0 0 16px ${color};`;
+    document.body.appendChild(el);
+    const r=rand(40,90),spd=rand(1.5,3),off=(i/8)*Math.PI*2,st=performance.now(),dur=900;
+    (function anim(now){
+      const t=(now-st)/1000,pr=Math.min((now-st)/dur,1),ang=t*spd+off;
+      el.style.left=(cx+Math.cos(ang)*r)+'px';el.style.top=(cy+Math.sin(ang)*r*0.4)+'px';
+      el.style.opacity=String(1-pr);
+      if(pr<1)requestAnimationFrame(anim);else el.remove();
+    })(performance.now());
+  }
+}
+function spawnSpark(fx,fy,tx,ty,color){
+  const dx=tx-fx,dy=ty-fy,len=Math.sqrt(dx*dx+dy*dy),ang=Math.atan2(dy,dx)*180/Math.PI;
+  const s=document.createElement('div');
+  s.style.cssText=`position:fixed;left:${fx}px;top:${fy}px;height:2px;width:0;
+    background:linear-gradient(to right,${color},#fff,transparent);
+    transform:rotate(${ang}deg);transform-origin:left center;
+    box-shadow:0 0 4px ${color};z-index:8300;pointer-events:none;border-radius:2px;`;
+  document.body.appendChild(s);
+  const st=performance.now();
+  (function anim(now){
+    const t=now-st;
+    if(t<400){s.style.width=(len*(t/400))+'px';s.style.opacity='1';requestAnimationFrame(anim);}
+    else if(t<600){s.style.opacity=String(1-(t-400)/200);requestAnimationFrame(anim);}
+    else s.remove();
+  })(performance.now());
+}
+function createFlash(color){
+  const f=document.createElement('div');
+  f.className='flash-overlay';
+  f.style.background=`radial-gradient(circle at center,${color}88 0%,transparent 70%)`;
+  document.body.appendChild(f);
+  const st=performance.now();
+  (function anim(now){
+    const t=Math.min((now-st)/400,1);
+    f.style.opacity=String(t<0.3?t/0.3*0.7:(1-(t-0.3)/0.7)*0.7);
+    if(t<1)requestAnimationFrame(anim);else f.remove();
+  })(performance.now());
+}
+function spawnSmoke(cx,cy,bench,br){
+  const lx=cx-br.left,ly=cy-br.top;
+  for(let i=0;i<8;i++){
+    setTimeout(()=>{
+      const s=document.createElement('div');
+      s.style.cssText=`position:absolute;border-radius:50%;
+        width:${rand(20,50)}px;height:${rand(20,50)}px;
+        background:radial-gradient(circle,rgba(200,200,200,0.3) 0%,transparent 70%);
+        left:${lx+rand(-30,30)}px;top:${ly+rand(-20,10)}px;
+        pointer-events:none;z-index:6;`;
+      bench.appendChild(s);
+      const st=performance.now(),dur=rand(800,1400),dx=rand(-20,20);
+      (function anim(now){
+        const t=Math.min((now-st)/dur,1);
+        s.style.transform=`translateY(${-t*60}px) translateX(${dx*t}px) scale(${1+t*2})`;
+        s.style.opacity=String(0.5*(1-t));
+        if(t<1)requestAnimationFrame(anim);else s.remove();
+      })(performance.now());
+    },i*80);
+  }
+}
+function benchShake(){
+  const bench=document.getElementById('workbench');
+  bench.style.animation='none';
+  setTimeout(()=>{bench.style.animation='shake 0.5s ease';},10);
+  setTimeout(()=>{bench.style.animation='';},560);
+}
+function spawnProduct(bench,rxn){
+  const card=document.createElement('div');
+  card.className='product-card';
+  card.style.left=(bench.offsetWidth/2-40)+'px';
+  card.style.top=(bench.offsetHeight/2-30)+'px';
+  card.style.borderColor=rxn.color;
+  card.style.boxShadow=`0 5px 25px ${rxn.color}80`;
+  card.innerHTML=`<div class="p-formula">${rxn.product}</div><div class="p-name">${rxn.name}</div>`;
+  card.addEventListener('mousedown',e=>startProductMove(e,card,bench));
+  card.addEventListener('touchstart',e=>startProductMoveTouch(e,card,bench),{passive:false});
+  bench.appendChild(card);
+  setTimeout(()=>spawnMiniP(bench,bench.offsetWidth/2,bench.offsetHeight/2,rxn.color),200);
+}
+function spawnMiniP(bench,lx,ly,color){
+  for(let i=0;i<20;i++){
+    const p=document.createElement('div');
+    const ang=rand(0,Math.PI*2),spd=rand(20,70),dur=rand(400,700);
+    const vx=Math.cos(ang)*spd,vy=Math.sin(ang)*spd;
+    p.style.cssText=`position:absolute;border-radius:50%;
+      width:${rand(3,8)}px;height:${rand(3,8)}px;
+      background:${color};left:${lx}px;top:${ly}px;
+      pointer-events:none;z-index:11;box-shadow:0 0 6px ${color};`;
+    bench.appendChild(p);
+    const st=performance.now();
+    (function anim(now){
+      const t=Math.min((now-st)/dur,1);
+      p.style.left=(lx+vx*t)+'px';p.style.top=(ly+vy*t+30*t*t)+'px';
+      p.style.opacity=String(1-t);
+      if(t<1)requestAnimationFrame(anim);else p.remove();
+    })(performance.now());
+  }
+}
+
+// 생성물 이동 드래그
+function startProductMove(e,card,bench){
+  e.preventDefault();
+  const br=bench.getBoundingClientRect();
+  const floatEl=document.createElement('div');
+  floatEl.className='floating-element transition';
+  floatEl.style.left=(e.clientX-35)+'px'; floatEl.style.top=(e.clientY-25)+'px';
+  floatEl.innerHTML=card.innerHTML; floatEl.style.pointerEvents='none';
+  document.body.appendChild(floatEl);
+  card.style.opacity='0.3';
+  function move(ev){
+    floatEl.style.left=(ev.clientX-35)+'px'; floatEl.style.top=(ev.clientY-25)+'px';
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    document.getElementById('trash').classList.toggle('drag-over',
+      ev.clientX>=tr.left&&ev.clientX<=tr.right&&ev.clientY>=tr.top&&ev.clientY<=tr.bottom);
+  }
+  function up(ev){
+    document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
+    floatEl.remove(); card.style.opacity='';
+    document.getElementById('trash').classList.remove('drag-over');
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    const brr=bench.getBoundingClientRect();
+    if(ev.clientX>=tr.left&&ev.clientX<=tr.right&&ev.clientY>=tr.top&&ev.clientY<=tr.bottom){
+      trashFx(); card.remove();
+      if(!bench.querySelector('.bench-element,.product-card'))
+        document.getElementById('bench-msg').style.display='block';
+    } else {
+      card.style.left=Math.max(0,Math.min(brr.width-80,ev.clientX-brr.left-35))+'px';
+      card.style.top=Math.max(0,Math.min(brr.height-60,ev.clientY-brr.top-25))+'px';
+    }
+  }
+  document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+}
+function startProductMoveTouch(e,card,bench){
+  e.preventDefault();
+  const t0=e.touches[0];
+  const floatEl=document.createElement('div');
+  floatEl.className='floating-element transition';
+  floatEl.style.left=(t0.clientX-35)+'px'; floatEl.style.top=(t0.clientY-25)+'px';
+  floatEl.innerHTML=card.innerHTML; floatEl.style.pointerEvents='none';
+  document.body.appendChild(floatEl); card.style.opacity='0.3';
+  function move(ev){
+    ev.preventDefault(); const t=ev.touches[0];
+    floatEl.style.left=(t.clientX-35)+'px'; floatEl.style.top=(t.clientY-25)+'px';
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    document.getElementById('trash').classList.toggle('drag-over',
+      t.clientX>=tr.left&&t.clientX<=tr.right&&t.clientY>=tr.top&&t.clientY<=tr.bottom);
+  }
+  function up(ev){
+    document.removeEventListener('touchmove',move); document.removeEventListener('touchend',up);
+    floatEl.remove(); card.style.opacity='';
+    document.getElementById('trash').classList.remove('drag-over');
+    const t=ev.changedTouches[0];
+    const tr=document.getElementById('trash').getBoundingClientRect();
+    const brr=bench.getBoundingClientRect();
+    if(t.clientX>=tr.left&&t.clientX<=tr.right&&t.clientY>=tr.top&&t.clientY<=tr.bottom){
+      trashFx(); card.remove();
+    } else {
+      card.style.left=Math.max(0,Math.min(brr.width-80,t.clientX-brr.left-35))+'px';
+      card.style.top=Math.max(0,Math.min(brr.height-60,t.clientY-brr.top-25))+'px';
+    }
+  }
+  document.addEventListener('touchmove',move,{passive:false}); document.addEventListener('touchend',up);
+}
+
+function trashFx(){
+  const t=document.getElementById('trash');
+  t.style.transform='scale(1.3) rotate(15deg)';
+  setTimeout(()=>{t.style.transform='';},300);
+}
+function noRxnFx(){
+  const b=document.getElementById('workbench');
+  b.style.borderColor='#ff4757';b.style.boxShadow='0 0 20px rgba(255,71,87,0.5)';
+  b.style.animation='none';setTimeout(()=>{b.style.animation='shake 0.5s ease';},10);
+  setTimeout(()=>{b.style.borderColor='';b.style.boxShadow='';b.style.animation='';},600);
+}
+
+// ==================== 결과 표시 ====================
+function showResult(rxn){
+  const area=document.getElementById('result-area');
+  area.style.display='grid';
+  document.getElementById('result-title').textContent=`✅ ${rxn.type} — ${rxn.product}`;
+  document.getElementById('result-desc').textContent=`${rxn.equation}\n\n${rxn.desc}`;
+  const badge=document.getElementById('bond-badge');
+  const labels={covalent:'⚛️ 공유 결합 (Covalent Bond)',ionic:'🔶 이온 결합 (Ionic Bond)',metallic:'🔷 금속 결합 (Metallic Bond)'};
+  const cls={covalent:'badge-covalent',ionic:'badge-ionic',metallic:'badge-metallic'};
+  badge.textContent=labels[rxn.bondType]||rxn.bondType;
+  badge.className='bond-badge '+(cls[rxn.bondType]||'badge-none');
+  document.getElementById('struct-title').textContent='🔬 결합 구조 — '+rxn.product;
+  drawStructure(rxn);
+}
+function showMsg(title,desc,ok){
+  const area=document.getElementById('result-area');
+  area.style.display='grid';
+  document.getElementById('result-title').textContent=title;
+  document.getElementById('result-desc').textContent=desc;
+  document.getElementById('bond-badge').textContent='';
+  document.getElementById('result-panel').style.borderLeftColor=ok?'#00b894':'#e17055';
+  document.getElementById('struct-title').textContent='🔬 결합 구조';
+  const ctx=document.getElementById('structure-canvas').getContext('2d');
+  ctx.clearRect(0,0,320,200);
+}
+
+// ==================== Canvas 구조 그리기 ====================
+function drawStructure(rxn){
+  const canvas=document.getElementById('structure-canvas');
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // 어두운 배경
+  ctx.fillStyle='#0a0a1e';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  const fn=DRAW_FNS[rxn.draw];
+  if(fn)fn(ctx,canvas.width,canvas.height);
+  else drawGenericFn(ctx,canvas.width,canvas.height,rxn);
+}
+
+// ── Canvas 헬퍼 ──
+function shade(hex,amt){
+  let c=hex.replace('#','');
+  if(c.length===3)c=c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+  let r=Math.max(0,Math.min(255,parseInt(c.slice(0,2),16)+amt));
+  let g=Math.max(0,Math.min(255,parseInt(c.slice(2,4),16)+amt));
+  let b=Math.max(0,Math.min(255,parseInt(c.slice(4,6),16)+amt));
+  return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+
+// 원자 그리기 (밝고 선명하게)
+function atom(ctx,x,y,r,color,lbl,textColor){
+  textColor=textColor||'#ffffff';
+  ctx.save();
+  // 글로우
+  ctx.shadowColor=color; ctx.shadowBlur=18;
+  const g=ctx.createRadialGradient(x-r*0.3,y-r*0.3,r*0.05,x,y,r);
+  g.addColorStop(0,'#ffffff');
+  g.addColorStop(0.25,color);
+  g.addColorStop(1,shade(color,-50));
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fillStyle=g; ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.lineWidth=2;
+  ctx.stroke(); ctx.restore();
+  // 텍스트 (항상 굵고 크게)
+  ctx.save();
+  ctx.font=`bold ${Math.max(11,Math.floor(r*0.85))}px Arial`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='#000'; ctx.fillText(lbl,x+1,y+1); // 그림자
+  ctx.fillStyle=textColor; ctx.fillText(lbl,x,y);
+  ctx.restore();
+}
+
+// 이온 그리기
+function ion(ctx,x,y,r,color,lbl,charge,textColor){
+  atom(ctx,x,y,r,color,lbl,textColor||'#fff');
+  ctx.save();
+  ctx.font='bold 12px Arial'; ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.fillStyle='#ffd700';
+  ctx.strokeStyle='#000'; ctx.lineWidth=2;
+  ctx.strokeText(charge,x+r*0.5,y-r*0.9);
+  ctx.fillText(charge,x+r*0.5,y-r*0.9);
+  ctx.restore();
+}
+
+// 결합선
+function bond(ctx,x1,y1,x2,y2,order,color){
+  order=order||1; color=color||'#ffffff';
+  const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+  const nx=-dy/len,ny=dx/len;
+  const offsets=order===1?[0]:order===2?[-3.5,3.5]:[-5,0,5];
+  ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=2.5;
+  ctx.shadowColor=color; ctx.shadowBlur=6;
+  offsets.forEach(off=>{
+    ctx.beginPath();
+    ctx.moveTo(x1+nx*off,y1+ny*off);
+    ctx.lineTo(x2+nx*off,y2+ny*off);
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+
+// 비공유 전자쌍
+function lonePair(ctx,x,y,angle,color){
+  color=color||'#00ffff';
+  ctx.save();
+  ctx.shadowColor=color; ctx.shadowBlur=8;
+  ctx.fillStyle=color;
+  const dist=16;
+  [-5,5].forEach(off=>{
+    const ex=x+Math.cos(angle)*dist+Math.cos(angle+Math.PI/2)*off;
+    const ey=y+Math.sin(angle)*dist+Math.sin(angle+Math.PI/2)*off;
+    ctx.beginPath(); ctx.arc(ex,ey,3,0,Math.PI*2); ctx.fill();
+  });
+  ctx.restore();
+}
+
+// 이온 결합 배경
+function ionicBg(ctx,w,h,c1,c2){
+  ctx.save(); ctx.globalAlpha=0.12;
+  for(let i=0;i<6;i++)for(let j=0;j<4;j++){
+    ctx.beginPath();
+    ctx.arc(25+i*50,25+j*45,10,0,Math.PI*2);
+    ctx.fillStyle=(i+j)%2===0?c1:c2; ctx.fill();
+  }
+  ctx.restore();
+  // 격자선
+  ctx.save(); ctx.globalAlpha=0.06; ctx.strokeStyle='#fff'; ctx.lineWidth=1;
+  for(let i=0;i<6;i++)for(let j=0;j<4;j++){
+    if(i<5){ctx.beginPath();ctx.moveTo(25+i*50,25+j*45);ctx.lineTo(75+i*50,25+j*45);ctx.stroke();}
+    if(j<3){ctx.beginPath();ctx.moveTo(25+i*50,25+j*45);ctx.lineTo(25+i*50,70+j*45);ctx.stroke();}
+  }
+  ctx.restore();
+}
+
+// 금속 결합 배경
+function metallicBg(ctx,w,h,color){
+  ctx.save(); ctx.globalAlpha=0.18;
+  const g=ctx.createLinearGradient(0,0,w,h);
+  g.addColorStop(0,color); g.addColorStop(1,shade(color,-60));
+  ctx.fillStyle=g; ctx.fillRect(10,10,w-20,h-20);
+  ctx.restore();
+  // 자유 전자 점들
+  for(let i=0;i<16;i++){
+    const ex=rand(15,w-15),ey=rand(15,h-15);
+    ctx.save(); ctx.shadowColor='#fff'; ctx.shadowBlur=6;
+    ctx.fillStyle='rgba(255,255,255,0.75)';
+    ctx.beginPath(); ctx.arc(ex,ey,2.5,0,Math.PI*2); ctx.fill();
+    ctx.font='9px Arial'; ctx.fillStyle='rgba(200,220,255,0.9)';
+    ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText('e⁻',ex+4,ey); ctx.restore();
+  }
+}
+
+// 라벨
+function label(ctx,text,x,y,size,color){
+  ctx.save();
+  ctx.font=`${size||11}px Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='#000';
+  ctx.fillText(text,x+1,y+1);
+  ctx.fillStyle=color||'rgba(180,220,255,0.9)'; ctx.fillText(text,x,y);
+  ctx.restore();
+}
+
+// ── 개별 그리기 ──
+function drawH2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,1,'#e0e0ff');
+  atom(ctx,cx-50,cy,22,'#aaaacc','H');
+  atom(ctx,cx+50,cy,22,'#aaaacc','H');
+  lonePair(ctx,cx-50,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  label(ctx,'비극성 공유 결합 | H-H 단일 결합',cx,h-18,11);
+}
+function drawO2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,2,'#ff6666');
+  atom(ctx,cx-50,cy,24,'#ff3333','O');
+  atom(ctx,cx+50,cy,24,'#ff3333','O');
+  lonePair(ctx,cx-50,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx-50,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  lonePair(ctx,cx+50,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'비극성 공유 결합 | O=O 이중 결합',cx,h-18,11);
+}
+function drawN2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,3,'#aa88ff');
+  atom(ctx,cx-50,cy,24,'#6644cc','N');
+  atom(ctx,cx+50,cy,24,'#6644cc','N');
+  lonePair(ctx,cx-50,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  label(ctx,'비극성 공유 결합 | N≡N 삼중 결합',cx,h-18,11);
+}
+function drawCl2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,1,'#00ffcc');
+  atom(ctx,cx-50,cy,24,'#00aaaa','Cl');
+  atom(ctx,cx+50,cy,24,'#00aaaa','Cl');
+  lonePair(ctx,cx-50,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx-50,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx-50,cy,-Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  lonePair(ctx,cx+50,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+50,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'비극성 공유 결합 | Cl-Cl 단일 결합',cx,h-18,11);
+}
+function drawF2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,1,'#ff88cc');
+  atom(ctx,cx-50,cy,22,'#cc4488','F');
+  atom(ctx,cx+50,cy,22,'#cc4488','F');
+  lonePair(ctx,cx-50,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx-50,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx-50,cy,-Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  lonePair(ctx,cx+50,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+50,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'비극성 공유 결합 | F-F 단일 결합',cx,h-18,11);
+}
+function drawBr2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-55,cy,cx+55,cy,1,'#ff8855');
+  atom(ctx,cx-55,cy,26,'#cc4422','Br');
+  atom(ctx,cx+55,cy,26,'#cc4422','Br');
+  lonePair(ctx,cx-55,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx-55,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx-55,cy,-Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+55,cy,0,'#00ffff');
+  lonePair(ctx,cx+55,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+55,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'비극성 공유 결합 | Br-Br 단일 결합',cx,h-18,11);
+}
+function drawI2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-55,cy,cx+55,cy,1,'#9966ff');
+  atom(ctx,cx-55,cy,26,'#6633cc','I');
+  atom(ctx,cx+55,cy,26,'#6633cc','I');
+  lonePair(ctx,cx-55,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx-55,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx-55,cy,-Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+55,cy,0,'#00ffff');
+  lonePair(ctx,cx+55,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+55,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'비극성 공유 결합 | I-I 단일 결합',cx,h-18,11);
+}
+function drawMetal(ctx,w,h){
+  metallicBg(ctx,w,h,'#74b9ff');
+  const pos=[[70,55],[160,55],[250,55],[70,130],[160,130],[250,130]];
+  pos.forEach(([x,y])=>atom(ctx,x,y,24,'#3399ff','M⁺'));
+  label(ctx,'금속 결합 | 자유 전자(e⁻)의 바다 모형',w/2,h-12,11);
+}
+function drawH2O(ctx,w,h){
+  const cx=w/2,cy=h/2-10;
+  bond(ctx,cx,cy,cx-58,cy+42,1,'#88ccff');
+  bond(ctx,cx,cy,cx+58,cy+42,1,'#88ccff');
+  atom(ctx,cx,cy,26,'#ff4444','O');
+  atom(ctx,cx-58,cy+42,18,'#aaaacc','H');
+  atom(ctx,cx+58,cy+42,18,'#aaaacc','H');
+  lonePair(ctx,cx,cy,-Math.PI*0.75,'#00ffff');
+  lonePair(ctx,cx,cy,-Math.PI*0.25,'#00ffff');
+  // 결합각
+  ctx.save(); ctx.strokeStyle='rgba(255,255,100,0.7)'; ctx.lineWidth=1.5;
+  ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.arc(cx,cy,38,-Math.PI*0.75,-Math.PI*0.25,false);
+  ctx.stroke(); ctx.restore();
+  label(ctx,'104.5°',cx,cy+42,10,'#ffff88');
+  label(ctx,'굽은형(V형) | 극성 공유 결합 | 비공유전자쌍 2쌍',cx,h-12,10);
+}
+function drawH2O2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-95,cy,cx-45,cy,1,'#88ccff');
+  bond(ctx,cx-45,cy,cx+45,cy,1,'#88ccff');
+  bond(ctx,cx+45,cy,cx+95,cy,1,'#88ccff');
+  atom(ctx,cx-95,cy,16,'#aaaacc','H');
+  atom(ctx,cx-45,cy,24,'#ff4444','O');
+  atom(ctx,cx+45,cy,24,'#ff4444','O');
+  atom(ctx,cx+95,cy,16,'#aaaacc','H');
+  lonePair(ctx,cx-45,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx-45,cy,-Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+45,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+45,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'H-O-O-H | 극성 공유 결합 | 소독약 성분',cx,h-12,10);
+}
+function drawCO2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-70,cy,cx,cy,2,'#ff88aa');
+  bond(ctx,cx,cy,cx+70,cy,2,'#ff88aa');
+  atom(ctx,cx,cy,26,'#888888','C');
+  atom(ctx,cx-70,cy,24,'#ff4444','O');
+  atom(ctx,cx+70,cy,24,'#ff4444','O');
+  lonePair(ctx,cx-70,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx-70,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+70,cy,0,'#00ffff');
+  lonePair(ctx,cx+70,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'선형(180°) | O=C=O 이중결합 × 2 | 비극성',cx,h-12,10);
+}
+function drawCO(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-48,cy,cx+48,cy,3,'#ff88aa');
+  atom(ctx,cx-48,cy,26,'#888888','C');
+  atom(ctx,cx+48,cy,26,'#ff4444','O');
+  lonePair(ctx,cx-48,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx+48,cy,0,'#00ffff');
+  label(ctx,'선형 | C≡O 삼중결합 | 독성 기체',cx,h-12,10);
+}
+function drawNaCl(ctx,w,h){
+  ionicBg(ctx,w,h,'#e17055','#00cec9');
+  const cx=w/2,cy=h/2-8;
+  ctx.save(); ctx.setLineDash([6,4]);
+  ctx.strokeStyle='rgba(255,215,0,0.8)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-36,cy); ctx.lineTo(cx+36,cy); ctx.stroke(); ctx.restore();
+  ion(ctx,cx-55,cy,30,'#e17055','Na','Na⁺','#fff');
+  ion(ctx,cx+55,cy,30,'#00aacc','Cl','Cl⁻','#fff');
+  // 전자 이동 화살표
+  ctx.save(); ctx.strokeStyle='#ffd700'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-20,cy-45); ctx.lineTo(cx+20,cy-45); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx+15,cy-50); ctx.lineTo(cx+20,cy-45); ctx.lineTo(cx+15,cy-40); ctx.stroke();
+  ctx.fillStyle='#ffd700'; ctx.font='10px Arial'; ctx.textAlign='center';
+  ctx.fillText('e⁻ 이동',cx,cy-58); ctx.restore();
+  label(ctx,'이온 결합 | Na⁺ + Cl⁻ | 전자 1개 이동',cx,h-12,11);
+}
+function drawHCl(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,1,'#00ffcc');
+  atom(ctx,cx-50,cy,22,'#aaaacc','H');
+  atom(ctx,cx+50,cy,28,'#00aaaa','Cl');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  lonePair(ctx,cx+50,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+50,cy,-Math.PI/2,'#00ffff');
+  // 쌍극자
+  ctx.save(); ctx.strokeStyle='#ffd700'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-25,cy-50); ctx.lineTo(cx+30,cy-50); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx-25,cy-55); ctx.lineTo(cx-20,cy-50); ctx.lineTo(cx-25,cy-45); ctx.stroke();
+  ctx.fillStyle='#ffd700'; ctx.font='11px Arial'; ctx.textAlign='center';
+  ctx.fillText('δ+',cx-42,cy-50); ctx.fillText('δ-',cx+48,cy-50); ctx.restore();
+  label(ctx,'극성 공유 결합 | H-Cl | 비공유전자쌍 3쌍',cx,h-12,10);
+}
+function drawHF(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,1,'#ff88cc');
+  atom(ctx,cx-50,cy,22,'#aaaacc','H');
+  atom(ctx,cx+50,cy,26,'#cc4488','F');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  lonePair(ctx,cx+50,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+50,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'극성 공유 결합 | H-F | 전기음성도 F=4.0',cx,h-12,10);
+}
+function drawMgO(ctx,w,h){
+  ionicBg(ctx,w,h,'#fdcb6e','#ff4444');
+  const cx=w/2,cy=h/2-8;
+  ctx.save(); ctx.setLineDash([6,4]);
+  ctx.strokeStyle='rgba(255,215,0,0.8)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-36,cy); ctx.lineTo(cx+36,cy); ctx.stroke(); ctx.restore();
+  ion(ctx,cx-58,cy,30,'#fdcb6e','Mg','Mg²⁺','#333');
+  ion(ctx,cx+58,cy,30,'#ff4444','O','O²⁻','#fff');
+  // 전자 이동 2개
+  ctx.save(); ctx.strokeStyle='#ffd700'; ctx.lineWidth=1.5;
+  [-8,8].forEach(dy=>{
+    ctx.beginPath(); ctx.moveTo(cx-18,cy-45+dy); ctx.lineTo(cx+18,cy-45+dy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+13,cy-50+dy); ctx.lineTo(cx+18,cy-45+dy); ctx.lineTo(cx+13,cy-40+dy); ctx.stroke();
+  });
+  ctx.fillStyle='#ffd700'; ctx.font='10px Arial'; ctx.textAlign='center';
+  ctx.fillText('e⁻ × 2 이동',cx,cy-62); ctx.restore();
+  label(ctx,'이온 결합 | Mg²⁺ + O²⁻ | 전자 2개 이동',cx,h-12,10);
+}
+function drawCaO(ctx,w,h){
+  ionicBg(ctx,w,h,'#fdcb6e','#ff4444');
+  const cx=w/2,cy=h/2-8;
+  ctx.save(); ctx.setLineDash([6,4]);
+  ctx.strokeStyle='rgba(255,215,0,0.8)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-36,cy); ctx.lineTo(cx+36,cy); ctx.stroke(); ctx.restore();
+  ion(ctx,cx-58,cy,30,'#fdcb6e','Ca','Ca²⁺','#333');
+  ion(ctx,cx+58,cy,30,'#ff4444','O','O²⁻','#fff');
+  label(ctx,'이온 결합 | Ca²⁺ + O²⁻ | 생석회(시멘트 원료)',cx,h-12,10);
+}
+function drawH2S(ctx,w,h){
+  const cx=w/2,cy=h/2-12;
+  bond(ctx,cx,cy,cx-60,cy+46,1,'#ffeeaa');
+  bond(ctx,cx,cy,cx+60,cy+46,1,'#ffeeaa');
+  atom(ctx,cx,cy,28,'#ccbb00','S','#fff');
+  atom(ctx,cx-60,cy+46,18,'#aaaacc','H');
+  atom(ctx,cx+60,cy+46,18,'#aaaacc','H');
+  lonePair(ctx,cx,cy,-Math.PI*0.8,'#00ffff');
+  lonePair(ctx,cx,cy,-Math.PI*0.2,'#00ffff');
+  label(ctx,'굽은형 | H-S-H | 결합각≈92° | 극성 공유',cx,h-12,10);
+}
+function drawSO2(ctx,w,h){
+  const cx=w/2,cy=h/2-12;
+  bond(ctx,cx,cy,cx-62,cy+46,2,'#ff88aa');
+  bond(ctx,cx,cy,cx+62,cy+46,2,'#ff88aa');
+  atom(ctx,cx,cy,28,'#ccbb00','S','#fff');
+  atom(ctx,cx-62,cy+46,22,'#ff4444','O');
+  atom(ctx,cx+62,cy+46,22,'#ff4444','O');
+  lonePair(ctx,cx,cy,-Math.PI/2,'#00ffff');
+  lonePair(ctx,cx-62,cy+46,Math.PI,'#00ffff');
+  lonePair(ctx,cx+62,cy+46,0,'#00ffff');
+  label(ctx,'굽은형 | 결합각≈119° | 극성 공유 | 산성비 원인',cx,h-12,10);
+}
+function drawNO(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-50,cy,cx+50,cy,2,'#aa88ff');
+  atom(ctx,cx-50,cy,24,'#6644cc','N');
+  atom(ctx,cx+50,cy,24,'#ff4444','O');
+  lonePair(ctx,cx-50,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx+50,cy,0,'#00ffff');
+  // 홀전자
+  ctx.save(); ctx.fillStyle='#ffff00'; ctx.shadowColor='#ffff00'; ctx.shadowBlur=8;
+  ctx.beginPath(); ctx.arc(cx-50,cy-36,4,0,Math.PI*2); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.fillStyle='#ffff88'; ctx.font='10px Arial'; ctx.textAlign='center';
+  ctx.fillText('홀전자',cx-50,cy-50); ctx.restore();
+  label(ctx,'선형 | N=O 이중결합 | 홀전자 1개',cx,h-12,10);
+}
+function drawNa2O(ctx,w,h){
+  ionicBg(ctx,w,h,'#e17055','#ff4444');
+  const cx=w/2,cy=h/2;
+  ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle='rgba(255,215,0,0.7)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-62,cy); ctx.lineTo(cx,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+62,cy); ctx.stroke(); ctx.restore();
+  ion(ctx,cx-80,cy,26,'#e17055','Na','Na⁺','#fff');
+  ion(ctx,cx,cy,26,'#ff4444','O','O²⁻','#fff');
+  ion(ctx,cx+80,cy,26,'#e17055','Na','Na⁺','#fff');
+  label(ctx,'이온 결합 | Na⁺-O²⁻-Na⁺ | 강염기 NaOH 전구체',cx,h-12,10);
+}
+function drawCaCl2(ctx,w,h){
+  ionicBg(ctx,w,h,'#fdcb6e','#00cec9');
+  const cx=w/2,cy=h/2;
+  ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle='rgba(255,215,0,0.7)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-62,cy); ctx.lineTo(cx,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+62,cy); ctx.stroke(); ctx.restore();
+  ion(ctx,cx-80,cy,24,'#00aacc','Cl','Cl⁻','#fff');
+  ion(ctx,cx,cy,28,'#fdcb6e','Ca','Ca²⁺','#333');
+  ion(ctx,cx+80,cy,24,'#00aacc','Cl','Cl⁻','#fff');
+  label(ctx,'이온 결합 | Cl⁻-Ca²⁺-Cl⁻ | 제습제·제설제',cx,h-12,10);
+}
+function drawFe2O3(ctx,w,h){
+  ionicBg(ctx,w,h,'#e17055','#ff4444');
+  const cx=w/2,cy=h/2-5;
+  [[cx-90,cy],[cx+90,cy]].forEach(([x,y])=>ion(ctx,x,y,24,'#cc5500','Fe','Fe³⁺','#fff'));
+  [[cx-30,cy-40],[cx+30,cy-40],[cx,cy+35]].forEach(([x,y])=>ion(ctx,x,y,20,'#ff4444','O','O²⁻','#fff'));
+  ctx.save(); ctx.setLineDash([4,3]); ctx.strokeStyle='rgba(255,215,0,0.5)'; ctx.lineWidth=1.5;
+  [[cx-90,cy,cx-30,cy-40],[cx-90,cy,cx,cy+35],[cx+90,cy,cx+30,cy-40],[cx+90,cy,cx,cy+35]].forEach(([x1,y1,x2,y2])=>{
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  });
+  ctx.restore();
+  label(ctx,'이온 결합 | Fe³⁺ + O²⁻ | 녹(산화철)',cx,h-8,10);
+}
+function drawAl2O3(ctx,w,h){
+  ionicBg(ctx,w,h,'#b2bec3','#ff4444');
+  const cx=w/2,cy=h/2-5;
+  [[cx-85,cy],[cx+85,cy]].forEach(([x,y])=>ion(ctx,x,y,22,'#99aabb','Al','Al³⁺','#fff'));
+  [[cx-28,cy-38],[cx+28,cy-38],[cx,cy+36]].forEach(([x,y])=>ion(ctx,x,y,20,'#ff4444','O','O²⁻','#fff'));
+  label(ctx,'이온 결합 | Al³⁺ + O²⁻ | 알루미늄 보호막',cx,h-8,10);
+}
+function drawNH3(ctx,w,h){
+  const cx=w/2,cy=h/2-12;
+  bond(ctx,cx,cy,cx-65,cy+50,1,'#aa88ff');
+  bond(ctx,cx,cy,cx+65,cy+50,1,'#aa88ff');
+  bond(ctx,cx,cy,cx,cy+68,1,'#aa88ff');
+  atom(ctx,cx,cy,26,'#6644cc','N','#fff');
+  atom(ctx,cx-65,cy+50,18,'#aaaacc','H');
+  atom(ctx,cx+65,cy+50,18,'#aaaacc','H');
+  atom(ctx,cx,cy+68,18,'#aaaacc','H');
+  lonePair(ctx,cx,cy,-Math.PI/2,'#00ffff');
+  // 결합각
+  ctx.save(); ctx.strokeStyle='rgba(255,255,100,0.6)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.arc(cx,cy,42,Math.PI*0.65,Math.PI*1.35,false); ctx.stroke(); ctx.restore();
+  label(ctx,'107°',cx-70,cy+20,10,'#ffff88');
+  label(ctx,'삼각뿔형 | 극성 공유 결합 | 비공유전자쌍 1쌍',cx,h-12,10);
+}
+function drawCH4(ctx,w,h){
+  const cx=w/2,cy=h/2-5;
+  [[0,-65],[62,38],[-62,38],[0,62]].forEach(([dx,dy])=>{
+    bond(ctx,cx,cy,cx+dx,cy+dy,1,'#00ffaa');
+    atom(ctx,cx+dx,cy+dy,17,'#aaaacc','H');
+  });
+  atom(ctx,cx,cy,28,'#666666','C','#fff');
+  label(ctx,'정사면체형(109.5°) | 비극성 공유 결합 | 천연가스',cx,h-12,10);
+}
+function drawSO3(ctx,w,h){
+  const cx=w/2,cy=h/2-5;
+  const angles=[-Math.PI/2,Math.PI/6,Math.PI*5/6];
+  angles.forEach(a=>{
+    bond(ctx,cx,cy,cx+Math.cos(a)*70,cy+Math.sin(a)*70,2,'#ff88aa');
+    atom(ctx,cx+Math.cos(a)*70,cy+Math.sin(a)*70,22,'#ff4444','O');
+  });
+  atom(ctx,cx,cy,28,'#ccbb00','S','#fff');
+  label(ctx,'평면 삼각형(120°) | 극성 공유 결합 | 황산 원료',cx,h-12,10);
+}
+function drawNO2(ctx,w,h){
+  const cx=w/2,cy=h/2-10;
+  bond(ctx,cx,cy,cx-65,cy+48,2,'#aa88ff');
+  bond(ctx,cx,cy,cx+65,cy+48,1,'#aa88ff');
+  atom(ctx,cx,cy,24,'#6644cc','N','#fff');
+  atom(ctx,cx-65,cy+48,22,'#ff4444','O');
+  atom(ctx,cx+65,cy+48,22,'#ff4444','O');
+  lonePair(ctx,cx,cy,-Math.PI/2,'#ffff00');
+  label(ctx,'134°',cx,cy-45,10,'#ffff88');
+  label(ctx,'굽은형(134°) | 홀전자 | 갈색 독성 기체',cx,h-12,10);
+}
+function drawSiO2(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  bond(ctx,cx-75,cy,cx,cy,2,'#ccddee');
+  bond(ctx,cx,cy,cx+75,cy,2,'#ccddee');
+  atom(ctx,cx,cy,26,'#667788','Si','#fff');
+  atom(ctx,cx-75,cy,22,'#ff4444','O');
+  atom(ctx,cx+75,cy,22,'#ff4444','O');
+  lonePair(ctx,cx-75,cy,Math.PI,'#00ffff');
+  lonePair(ctx,cx-75,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,cx+75,cy,0,'#00ffff');
+  lonePair(ctx,cx+75,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'공유 결합 결정 | 모래·반도체 원료',cx,h-12,10);
+}
+
+// ── 3원소 이상 ──
+function drawHNO3(ctx,w,h){
+  const cx=w/2-20,cy=h/2-10;
+  // H-O-N(=O)₂ 구조
+  atom(ctx,cx-80,cy,16,'#aaaacc','H');
+  atom(ctx,cx-45,cy,22,'#ff4444','O');
+  atom(ctx,cx,cy,24,'#6644cc','N','#fff');
+  atom(ctx,cx+50,cy-35,22,'#ff4444','O');
+  atom(ctx,cx+50,cy+35,22,'#ff4444','O');
+  bond(ctx,cx-80,cy,cx-45,cy,1,'#88ccff');
+  bond(ctx,cx-45,cy,cx,cy,1,'#88ccff');
+  bond(ctx,cx,cy,cx+50,cy-35,2,'#ff88aa');
+  bond(ctx,cx,cy,cx+50,cy+35,1,'#ff88aa');
+  lonePair(ctx,cx+50,cy+35,0,'#00ffff');
+  lonePair(ctx,cx+50,cy-35,Math.PI*0.3,'#00ffff');
+  label(ctx,'H-O-N(=O)₂ | 극성 공유 결합 | 강산',cx+20,h-12,10);
+}
+function drawH2SO4(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  // S 중심, O 4개
+  const oPos=[[0,-65],[65,0],[0,65],[-65,0]];
+  const orders=[2,1,1,2];
+  const hIdx=[1,2]; // O[1], O[2]에 H 붙임
+  oPos.forEach(([dx,dy],i)=>{
+    bond(ctx,cx,cy,cx+dx,cy+dy,orders[i],'#ffbb44');
+    atom(ctx,cx+dx,cy+dy,20,'#ff4444','O');
+    if(hIdx.includes(i)){
+      const hx=cx+dx+(dx===0?(i===1?25:-25):0)+(dy===0?0:(dy<0?0:0));
+      const hy=cy+dy+(dy===0?0:(dy>0?25:-25));
+      bond(ctx,cx+dx,cy+dy,cx+dx+(dy!==0?22:0),cy+dy+(dx!==0?0:22)*(i===1?1:-1),1,'#88ccff');
+      atom(ctx,cx+dx+(dy!==0?28:0),cy+dy+(dx!==0?0:28)*(i===1?1:-1),14,'#aaaacc','H');
+    }
+  });
+  atom(ctx,cx,cy,26,'#ccbb00','S','#fff');
+  label(ctx,'사면체형 | S 중심 | 강산(황산)',cx,h-12,10);
+}
+function drawH3PO4(ctx,w,h){
+  const cx=w/2,cy=h/2+5;
+  // P 중심, O 4개 (하나는 이중결합)
+  const oPos=[[0,-65],[62,30],[-62,30],[0,65]];
+  const orders=[2,1,1,1];
+  oPos.forEach(([dx,dy],i)=>{
+    bond(ctx,cx,cy,cx+dx,cy+dy,orders[i],'#88ffaa');
+    atom(ctx,cx+dx,cy+dy,20,'#ff4444','O');
+    if(i>0){
+      // H 붙이기
+      const ang=Math.atan2(dy,dx);
+      atom(ctx,cx+dx+Math.cos(ang)*32,cy+dy+Math.sin(ang)*32,14,'#aaaacc','H');
+      bond(ctx,cx+dx,cy+dy,cx+dx+Math.cos(ang)*32,cy+dy+Math.sin(ang)*32,1,'#88ccff');
+    }
+  });
+  atom(ctx,cx,cy,26,'#00aa44','P','#fff');
+  label(ctx,'사면체형 | P 중심 | H₃PO₄ 중간 강도 산',cx,h-12,10);
+}
+function drawNaOH(ctx,w,h){
+  ionicBg(ctx,w,h,'#e17055','#ff4444');
+  const cx=w/2,cy=h/2;
+  // Na⁺ / O-H (공유)
+  ion(ctx,cx-85,cy,28,'#e17055','Na','Na⁺','#fff');
+  atom(ctx,cx+5,cy,24,'#ff4444','O');
+  atom(ctx,cx+68,cy,18,'#aaaacc','H');
+  bond(ctx,cx+5,cy,cx+68,cy,1,'#88ccff'); // O-H 공유결합
+  ctx.save(); ctx.strokeStyle='rgba(255,215,0,0.8)'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(cx-55,cy); ctx.lineTo(cx-18,cy); ctx.stroke(); ctx.restore();
+  lonePair(ctx,cx+5,cy,Math.PI/2,'#00ffff');
+  lonePair(ctx,ctx,cx+5,cy,-Math.PI/2,'#00ffff');
+  label(ctx,'이온+공유 혼합 | Na⁺ / OH⁻ | 강염기',cx,h-12,10);
+}
+function drawNH4Cl(ctx,w,h){
+  ionicBg(ctx,w,h,'#a29bfe','#00cec9');
+  const cx=w/2-20,cy=h/2;
+  // NH4+ 그리기
+  atom(ctx,cx,cy,22,'#6644cc','N⁺','#fff');
+  [[0,-48],[45,25],[-45,25],[0,48]].forEach(([dx,dy])=>{
+    bond(ctx,cx,cy,cx+dx,cy+dy,1,'#aa88ff');
+    atom(ctx,cx+dx,cy+dy,15,'#aaaacc','H');
+  });
+  // Cl-
+  ion(ctx,cx+118,cy,26,'#00aacc','Cl','Cl⁻','#fff');
+  ctx.save(); ctx.strokeStyle='rgba(255,215,0,0.7)'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(cx+25,cy); ctx.lineTo(cx+88,cy); ctx.stroke(); ctx.restore();
+  label(ctx,'이온+공유 | NH₄⁺ + Cl⁻ | 비료·의약품',cx+50,h-12,10);
+}
+function drawKNO3(ctx,w,h){
+  ionicBg(ctx,w,h,'#e17055','#a29bfe');
+  const cx=w/2+20,cy=h/2;
+  // K+
+  ion(ctx,cx-110,cy,26,'#e17055','K','K⁺','#fff');
+  // NO3- (삼각형)
+  atom(ctx,cx,cy,22,'#6644cc','N','#fff');
+  const oAngles=[Math.PI/2,-Math.PI/6,-Math.PI*5/6];
+  oAngles.forEach((a,i)=>{
+    bond(ctx,cx,cy,cx+Math.cos(a)*55,cy+Math.sin(a)*55,i===0?2:1,'#ff88aa');
+    atom(ctx,cx+Math.cos(a)*55,cy+Math.sin(a)*55,18,'#ff4444','O');
+  });
+  ctx.save(); ctx.strokeStyle='rgba(255,215,0,0.7)'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(cx-88,cy); ctx.lineTo(cx-24,cy); ctx.stroke(); ctx.restore();
+  label(ctx,'이온+공유 | K⁺ + NO₃⁻ | 화약·비료',cx-30,h-12,10);
+}
+function drawC2H6(ctx,w,h){
+  const cx=w/2,cy=h/2;
+  // C-C 결합
+  bond(ctx,cx-35,cy,cx+35,cy,1,'#00ffaa');
+  atom(ctx,cx-35,cy,22,'#666666','C','#fff');
+  atom(ctx,cx+35,cy,22,'#666666','C','#fff');
+  // 왼쪽 C의 H 3개
+  [[-62,cy-32],[-70,cy],[-62,cy+32]].forEach(([x,y])=>{
+    bond(ctx,cx-35,cy,x,y,1,'#00ffaa');
+    atom(ctx,x,y,14,'#aaaacc','H');
+  });
+  // 오른쪽 C의 H 3개
+  [[cx+62,cy-32],[cx+70,cy],[cx+62,cy+32]].forEach(([x,y])=>{
+    bond(ctx,cx+35,cy,x,y,1,'#00ffaa');
+    atom(ctx,x,y,14,'#aaaacc','H');
+  });
+  label(ctx,'H₃C-CH₃ | 비극성 공유 결합 | 천연가스 성분',cx,h-12,10);
+}
+function drawC2H5OH(ctx,w,h){
+  const y=h/2+5;
+  // C-C-O-H
+  bond(ctx,50,y,115,y,1,'#00ffcc');
+  bond(ctx,115,y,178,y,1,'#00ffcc');
+  bond(ctx,178,y,230,y,1,'#00ffcc');
+  atom(ctx,50,y,20,'#666666','C','#fff');
+  atom(ctx,115,y,20,'#666666','C','#fff');
+  atom(ctx,178,y,22,'#ff4444','O');
+  atom(ctx,230,y,16,'#aaaacc','H');
+  [[50,y-42],[50,y+42],[115,y-42],[115,y+42]].forEach(([x,yy])=>{
+    const cx2=x===50?50:115;
+    bond(ctx,cx2,y,x,yy,1,'#00ffcc');
+    atom(ctx,x,yy,14,'#aaaacc','H');
+  });
+  lonePair(ctx,178,y,Math.PI/2,'#00ffff');
+  lonePair(ctx,178,y,-Math.PI/2,'#00ffff');
+  label(ctx,'CH₃-CH₂-OH | 극성 공유 결합 | 소독·연료',w/2,h-12,10);
+}
+
+function drawGenericFn(ctx,w,h,rxn){
+  ctx.fillStyle='rgba(200,200,255,0.7)'; ctx.font='bold 18px Arial';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(rxn.product,w/2,h/2-10);
+  ctx.font='12px Arial'; ctx.fillStyle='rgba(180,220,255,0.6)';
+  ctx.fillText(rxn.equation,w/2,h/2+20);
+}
+
+const DRAW_FNS={
+  drawH2,drawO2,drawN2,drawCl2,drawF2,drawBr2,drawI2,drawMetal,
+  drawH2O,drawH2O2,drawCO2,drawCO,drawNaCl,drawHCl,drawHF,
+  drawMgO,drawCaO,drawH2S,drawSO2,drawNO,drawNa2O,drawCaCl2,
+  drawFe2O3,drawAl2O3,drawNH3,drawCH4,drawSO3,drawNO2,drawSiO2,
+  drawHNO3,drawH2SO4,drawH3PO4,drawNaOH,drawNH4Cl,drawKNO3,
+  drawC2H6,drawC2H5OH,
+};
+
+// ==================== 초기화 버튼 ====================
+document.getElementById('reset-btn').addEventListener('click',()=>{
+  benchElements=[];
+  const bench=document.getElementById('workbench');
+  bench.querySelectorAll('.bench-element,.product-card').forEach(e=>e.remove());
+  document.getElementById('bench-msg').style.display='block';
+  document.getElementById('result-area').style.display='none';
+  bench.style.borderColor=''; bench.style.boxShadow='';
+  const ctx=document.getElementById('structure-canvas').getContext('2d');
+  ctx.clearRect(0,0,320,200);
+});
+
+// ==================== 초기 실행 ====================
+buildPT(); buildLegend();
+
+
+							</script>
+                        </body>
+                        </html>
+                    
